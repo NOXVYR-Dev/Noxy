@@ -1,5 +1,11 @@
 # Änderungsprotokoll
 
+## [0.2.4] - 2026-10-16
+
+- Noxy kann beim Herumlaufen von einem Monitor auf einen direkt angrenzenden Monitor weiterlaufen.
+- An äußeren Bildschirmkanten dreht Noxy um; die Position berücksichtigt die Anordnung und Versetzung der Monitore.
+
+
 ## [0.2.3] - 2026-10-16
 
 - Doppelklick auf Noxy öffnet direkt die Einstellungen; Rechtsklick öffnet weiterhin das Menü.
