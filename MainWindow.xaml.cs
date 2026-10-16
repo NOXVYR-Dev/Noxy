@@ -12,9 +12,10 @@ public partial class MainWindow : Window {
  readonly UpdateService updates=new();
  SettingsWindow? settingsWindow;
  double velocity=1.25, phase=0; int motionTicks=0, idleTicks=40; bool dragging=false; readonly PetSettings settings=PetSettings.Load();
- int seconds=0, bubbleTime=0; bool lastFallout=false,lastWow=false;
+ int seconds=0, bubbleTime=0; bool lastFallout=false,lastWow=false,updateNoticeShown=false;
  readonly string[] phrases={"Dein Desktop sieht aus, als hätte ein Supermutant aufgeräumt.","Ich habe heute nichts Produktives gemacht. Wir haben so viel gemeinsam.","Du klickst ziemlich selbstbewusst für jemanden ohne Plan.","Fallout im Herzen, ButzGatz im Blut. Und Chaos im Arbeitsspeicher.","Dein PC arbeitet. Ich überwache das fachmännisch vom Sofa aus.","Wenn Faulheit eine Grafikkarte wäre, hätte ich 500 FPS.","Wohltaten? Ich verteile höchstens dumme Sprüche.","Das ist kein Bug. Das ist ein Feature mit Alkoholproblem."};
- public MainWindow(){InitializeComponent();Left=settings.Left;Top=settings.Top;timer.Tick+=Tick;timer.Start();movementTimer.Tick+=Animate;movementTimer.Start();}
+ public MainWindow(){InitializeComponent();Left=settings.Left;Top=settings.Top;updates.Changed+=OnUpdateChanged;timer.Tick+=Tick;timer.Start();movementTimer.Tick+=Animate;movementTimer.Start();}
+ void OnUpdateChanged(){if(updates.UpdateAvailable&&!updateNoticeShown){updateNoticeShown=true;Say($"Noxy {updates.Status} Rechtsklick auf mich und öffne Einstellungen zum Aktualisieren.");}else if(!updates.UpdateAvailable){updateNoticeShown=false;}}
  void OnLoaded(object sender,RoutedEventArgs e){Say("Noxy ist wach. Wo sind meine verdammten Wohltaten?");}
  void Tick(object? sender,EventArgs e){seconds++;if(bubbleTime>0&&--bubbleTime==0)Bubble.Visibility=Visibility.Collapsed;
  var y=(int)(Math.Sin(seconds*.12)*3);Body.RenderTransform=new TranslateTransform(0,y);LeftEye.Height=RightEye.Height=settings.MovementMode=="sleep"||seconds%83==0?3:17;
