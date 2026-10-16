@@ -1,5 +1,12 @@
 # Änderungsprotokoll
 
+## [0.2.5] - 2026-10-16
+
+- Noxy erkennt auf Wunsch das aktive Vordergrund-Programm und kommentiert Programmwechsel.
+- Der Programmname muss mindestens 3 Sekunden aktiv sein; Kommentare erscheinen höchstens alle 3 Minuten.
+- Die Erkennung bleibt lokal und liest weder Fenstertitel noch Fensterinhalte.
+
+
 ## [0.2.4] - 2026-10-16
 
 - Noxy kann beim Herumlaufen von einem Monitor auf einen direkt angrenzenden Monitor weiterlaufen.
