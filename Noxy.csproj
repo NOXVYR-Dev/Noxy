@@ -15,4 +15,7 @@
     <FileVersion>0.3.4.0</FileVersion>
     <InformationalVersion>0.3.4</InformationalVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Noxy.Tests/**/*.cs" />
+  </ItemGroup>
 </Project>
