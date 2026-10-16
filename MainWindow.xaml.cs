@@ -15,7 +15,8 @@ public partial class MainWindow : Window {
  public MainWindow(){InitializeComponent();Left=settings.Left;Top=settings.Top;timer.Tick+=Tick;timer.Start();movementTimer.Tick+=Animate;movementTimer.Start();}
  void OnLoaded(object sender,RoutedEventArgs e){Say("Noxy ist wach. Wo sind meine verdammten Wohltaten?");}
  void Tick(object? sender,EventArgs e){seconds++;if(bubbleTime>0&&--bubbleTime==0)Bubble.Visibility=Visibility.Collapsed;
- var y=(int)(Math.Sin(seconds*.12)*3);Body.RenderTransform=new TranslateTransform(0,y);LeftEye.Height=RightEye.Height=(seconds%83==0)?3:17;
+ var y=(int)(Math.Sin(seconds*.12)*3);Body.RenderTransform=new TranslateTransform(0,y);LeftEye.Height=RightEye.Height=settings.MovementMode=="sleep"||seconds%83==0?3:17;
+ if(settings.MovementMode=="sleep"){Bubble.Visibility=Visibility.Collapsed;bubbleTime=0;return;}
  bool quiet=(settings.QuietWhenObs&&SystemMonitor.ObsRunning)||(settings.QuietWhenFullscreen&&SystemMonitor.ForegroundFullscreen());if(quiet){Bubble.Visibility=Visibility.Collapsed;bubbleTime=0;return;}
  bool f=SystemMonitor.FalloutRunning,w=SystemMonitor.WowRunning;
  if(f&&!lastFallout)Say("Fallout 76 gestartet. Das Ödland hat wieder Personalmangel.");
@@ -26,15 +27,16 @@ public partial class MainWindow : Window {
  void Animate(object? sender,EventArgs e){
   phase+=0.16;
   bool quiet=(settings.QuietWhenObs&&SystemMonitor.ObsRunning)||(settings.QuietWhenFullscreen&&SystemMonitor.ForegroundFullscreen());
-  bool walking=settings.EnableWalking&&!quiet&&!dragging;
+  bool walking=settings.MovementMode is "walk" or "zippy" && !quiet&&!dragging;
+  bool zippy=settings.MovementMode=="zippy";
   if(walking){
    if(idleTicks>0)idleTicks--;
    else {
     var area=SystemParameters.WorkArea;
-    Left+=velocity;
+    Left+=velocity*(zippy?2.6:1.0);
     if(Left<=area.Left){Left=area.Left;velocity=Math.Abs(velocity);}
     if(Left+Width>=area.Right){Left=Math.Max(area.Left,area.Right-Width);velocity=-Math.Abs(velocity);}
-    if(++motionTicks>=random.Next(95,135)){motionTicks=0;idleTicks=random.Next(35,95);if(random.Next(3)==0)velocity=-velocity;}
+    if(++motionTicks>=random.Next(zippy?48:95,zippy?82:135)){motionTicks=0;idleTicks=random.Next(zippy?15:35,zippy?48:95);if(random.Next(3)==0)velocity=-velocity;}
    }
   }
   bool moving=walking&&idleTicks==0;
@@ -44,7 +46,7 @@ public partial class MainWindow : Window {
   Body.RenderTransform=new TranslateTransform(0,moving?Math.Abs(Math.Sin(phase*2.5))*-3:Math.Sin(phase)*1.5);
  }
  void Say(string value){BubbleText.Text=value;Bubble.Visibility=Visibility.Visible;bubbleTime=11;}
- void DragWindow(object sender,MouseButtonEventArgs e){if(e.ClickCount==2){Say(phrases[random.Next(phrases.Length)]);return;}try{dragging=true;DragMove();}catch{}finally{dragging=false;}}
+ void DragWindow(object sender,MouseButtonEventArgs e){if(e.ChangedButton!=MouseButton.Left)return;if(e.ClickCount==2){Say(phrases[random.Next(phrases.Length)]);return;}try{dragging=true;DragMove();}catch(InvalidOperationException){}finally{dragging=false;}}
  void SayNow(object sender,RoutedEventArgs e)=>Say(phrases[random.Next(phrases.Length)]);
  void OpenChat(object sender,RoutedEventArgs e)=>new ChatWindow(settings).Show();
  void OpenSettings(object sender,RoutedEventArgs e)=>new SettingsWindow(settings,updates).ShowDialog();
