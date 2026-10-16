@@ -87,6 +87,8 @@ public class SettingsWindow : Window
         var sensors = AddCheck(panel, "RAM-Warnungen aktiv", settings.EnableSensors);
         var appComments = AddCheck(panel, "Kommentare bei Programmwechsel", settings.EnableAppComments);
         panel.Children.Add(new TextBlock { Text = "Erkennt nur den Namen des aktiven Programms. Keine Fenstertitel oder Inhalte. Höchstens ein Kommentar alle 3 Minuten.", TextWrapping = TextWrapping.Wrap, Opacity = 0.8, Margin = new Thickness(0, -4, 0, 10) });
+        var weatherComments = AddCheck(panel, "Täglicher Wetter-Spruch (ungefähre Stadt per IP)", settings.EnableWeatherComments);
+        panel.Children.Add(new TextBlock { Text = "Nur wenn aktiviert und höchstens einmal täglich: Deine öffentliche IP geht an ipwho.is zur ungefähren Stadtbestimmung. Die Koordinaten werden an Open-Meteo für Wetterdaten gesendet. Die Stadt kann ungenau sein. Wetterdaten: Open-Meteo (CC BY 4.0).", TextWrapping = TextWrapping.Wrap, Opacity = 0.8, Margin = new Thickness(0, -4, 0, 10) });
         var autostart = AddCheck(panel, "Beim Windows-Anmelden automatisch starten", WindowsStartup.IsEnabled());
 
         panel.Children.Add(new TextBlock { Text = "Sprüche alle (Sekunden, mindestens 15):", Foreground = BubbleText, Margin = new Thickness(0, 6, 0, 0) });
@@ -104,6 +106,7 @@ public class SettingsWindow : Window
             settings.QuietWhenFullscreen = full.IsChecked == true;
             settings.EnableSensors = sensors.IsChecked == true;
             settings.EnableAppComments = appComments.IsChecked == true;
+            settings.EnableWeatherComments = weatherComments.IsChecked == true;
             if (int.TryParse(interval.Text, out var seconds)) settings.IntervalSeconds = Math.Clamp(seconds, 15, 3600);
             try
             {
