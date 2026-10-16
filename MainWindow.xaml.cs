@@ -11,6 +11,7 @@ public partial class MainWindow : Window {
  readonly Random random=new();
  readonly UpdateService updates=new();
  SettingsWindow? settingsWindow;
+ string? activeProcess,pendingProcess; int pendingProcessSeconds=0; DateTime lastAppComment=DateTime.MinValue;
  double velocity=1.25, phase=0; int motionTicks=0, idleTicks=40; bool dragging=false; readonly PetSettings settings=PetSettings.Load();
  int seconds=0, bubbleTime=0; bool lastFallout=false,lastWow=false,updateNoticeShown=false;
  readonly string[] phrases={"Dein Desktop sieht aus, als hätte ein Supermutant aufgeräumt.","Ich habe heute nichts Produktives gemacht. Wir haben so viel gemeinsam.","Du klickst ziemlich selbstbewusst für jemanden ohne Plan.","Fallout im Herzen, ButzGatz im Blut. Und Chaos im Arbeitsspeicher.","Dein PC arbeitet. Ich überwache das fachmännisch vom Sofa aus.","Wenn Faulheit eine Grafikkarte wäre, hätte ich 500 FPS.","Wohltaten? Ich verteile höchstens dumme Sprüche.","Das ist kein Bug. Das ist ein Feature mit Alkoholproblem."};
@@ -21,12 +22,39 @@ public partial class MainWindow : Window {
  var y=(int)(Math.Sin(seconds*.12)*3);Body.RenderTransform=new TranslateTransform(0,y);LeftEye.Height=RightEye.Height=settings.MovementMode=="sleep"||seconds%83==0?3:17;
  if(settings.MovementMode=="sleep"){Bubble.Visibility=Visibility.Collapsed;bubbleTime=0;return;}
  bool quiet=(settings.QuietWhenObs&&SystemMonitor.ObsRunning)||(settings.QuietWhenFullscreen&&SystemMonitor.ForegroundFullscreen());if(quiet){Bubble.Visibility=Visibility.Collapsed;bubbleTime=0;return;}
+ ObserveForegroundProgram();
  bool f=SystemMonitor.FalloutRunning,w=SystemMonitor.WowRunning;
  if(f&&!lastFallout)Say("Fallout 76 gestartet. Das Ödland hat wieder Personalmangel.");
  else if(w&&!lastWow)Say("WoW gestartet. Viel Spaß beim virtuellen Überstundenmachen.");
  else if(settings.EnableSpeech&&seconds%Math.Max(15,settings.IntervalSeconds)==0){var phrase=phrases[random.Next(phrases.Length)];if(settings.EnableSensors&&SystemMonitor.RamPercent() is int ram&&ram>=85)phrase=$"RAM bei {ram} %. Du sammelst Programme wie Kronkorken!";Say(phrase);}
  lastFallout=f;lastWow=w;
  }
+ void ObserveForegroundProgram(){
+  var process=SystemMonitor.ForegroundProcessName();
+  if(string.IsNullOrWhiteSpace(process)||process.Equals("Noxy",StringComparison.OrdinalIgnoreCase)||process.Equals("ApplicationFrameHost",StringComparison.OrdinalIgnoreCase)){pendingProcess=null;pendingProcessSeconds=0;return;}
+  if(process.Equals(activeProcess,StringComparison.OrdinalIgnoreCase)){pendingProcess=null;pendingProcessSeconds=0;return;}
+  if(!process.Equals(pendingProcess,StringComparison.OrdinalIgnoreCase)){pendingProcess=process;pendingProcessSeconds=1;return;}
+  if(++pendingProcessSeconds<3)return;
+  activeProcess=process;pendingProcess=null;pendingProcessSeconds=0;
+  if(!settings.EnableAppComments||DateTime.UtcNow-lastAppComment<TimeSpan.FromMinutes(3))return;
+  lastAppComment=DateTime.UtcNow;
+  Say(AppComment(process));
+ }
+ static string AppComment(string process)=>process.ToLowerInvariant() switch{
+  "chrome" or "msedge" or "firefox" or "opera" or "brave" or "vivaldi"=>"Schon wieder im Browser. Ich hoffe, du weißt noch, wonach du gesucht hast.",
+  "discord"=>"Discord ist offen. Ich höre natürlich nicht mit. Ich habe Besseres zu tun.",
+  "steam"=>"Steam gestartet. Nur kurz schauen, was es Neues gibt, hm?",
+  "spotify"=>"Musik läuft. Damit klingt sogar Arbeit fast freiwillig.",
+  "obs64" or "obs32"=>"OBS ist offen. Ich benehme mich jetzt besonders professionell.",
+  "fallout76"=>"Fallout 76 läuft. Das Ödland hat wieder Personalmangel.",
+  "wow" or "wowclassic" or "wow-64"=>"World of Warcraft ist offen. Virtuelle Überstunden zählen auch.",
+  "code"=>"Visual Studio Code läuft. Zwischen den Bugs sieht es produktiv aus.",
+  "devenv"=>"Visual Studio geöffnet. Möge der Build beim ersten Versuch durchlaufen.",
+  "photoshop"=>"Photoshop offen. Ein paar Pixel brauchen bestimmt dringend deine Aufsicht.",
+  "premierepro"=>"Premiere Pro läuft. Ich warte geduldig auf den Export.",
+  _=>$"Du bist jetzt in {FriendlyProcessName(process)}. Ich passe hier auf."
+ };
+ static string FriendlyProcessName(string process){var name=process.Replace('_',' ').Replace('-',' ');return name.Length==0?"einem Programm":char.ToUpperInvariant(name[0])+name[1..];}
  void Animate(object? sender,EventArgs e){
   phase+=0.16;
   bool quiet=(settings.QuietWhenObs&&SystemMonitor.ObsRunning)||(settings.QuietWhenFullscreen&&SystemMonitor.ForegroundFullscreen());
