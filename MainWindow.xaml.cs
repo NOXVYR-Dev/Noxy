@@ -11,9 +11,10 @@ public partial class MainWindow : Window {
  readonly Random random=new();
  readonly UpdateService updates=new();
  readonly WeatherService weather=new();
+ readonly PetSettings settings; readonly int slot;
  SettingsWindow? settingsWindow;
  string? activeProcess,pendingProcess; int pendingProcessSeconds=0; DateTime lastAppComment=DateTime.MinValue;
- double velocity=1.25, phase=0; int motionTicks=0, idleTicks=40; bool dragging=false; readonly PetSettings settings=PetSettings.Load();
+ double velocity=1.25, phase=0; int motionTicks=0, idleTicks=40; bool dragging=false; string appliedColor=""; int lastEncounterSlot=0; DateTime lastEncounter=DateTime.MinValue;
  int seconds=0, bubbleTime=0; bool lastFallout=false,lastWow=false,updateNoticeShown=false;
  readonly string[] phrases={
   "Dein Desktop sieht aus, als hätte ein Supermutant aufgeräumt.","Ich habe heute nichts Produktives gemacht. Wir haben so viel gemeinsam.","Du klickst ziemlich selbstbewusst für jemanden ohne Plan.","Fallout im Herzen, ButzGatz im Blut. Und Chaos im Arbeitsspeicher.","Dein PC arbeitet. Ich überwache das fachmännisch vom Sofa aus.","Wenn Faulheit eine Grafikkarte wäre, hätte ich 500 FPS.","Wohltaten? Ich verteile höchstens dumme Sprüche.","Das ist kein Bug. Das ist ein Feature mit Alkoholproblem.",
@@ -22,10 +23,10 @@ public partial class MainWindow : Window {
   "Das Fenster da hinten sieht wichtig aus. Ich ignoriere es für dich.","Du arbeitest wirklich hart daran, beschäftigt auszusehen.","Ich wollte einen Kaffee holen. Dann fiel mir ein, dass ich keine Hände habe.","Heute schon etwas erledigt? Ich auch nicht. Teamwork!", "Ich bewerte deine Fensterordnung mit: mutig.","Keine Sorge, ich passe auf. Worauf, weiß ich noch nicht.","Du brauchst keine Pause. Aber ich könnte eine gebrauchen.","Wenn du mich suchst: Ich bin genau da, wo du mich gestern vergessen hast.",
   "Ich habe heute schon drei Pixel bewegt. Bitte keine Überanstrengung.","Dein Desktop hat mehr offene Fenster als ich offene Fragen.","Ich bin nicht im Weg. Ich bin eine dekorative Herausforderung.","Gute Nachrichten: Ich habe nichts kaputt gemacht. Bis jetzt.","Das war bestimmt der Plan. Ich unterstütze ihn vorsichtshalber.","Du siehst konzentriert aus. Ich mache lieber keinen Lärm. Außer diesem Spruch.","Ich bin bereit für Abenteuer. Also für einen Spaziergang bis zum Bildschirmrand.","Bei dem Tempo wird sogar mein Bildschirmschoner nervös."
  };
- public MainWindow(){InitializeComponent();Left=settings.Left;Top=settings.Top;updates.Changed+=OnUpdateChanged;timer.Tick+=Tick;timer.Start();movementTimer.Tick+=Animate;movementTimer.Start();}
+ public MainWindow(PetSettings petSettings,int instanceSlot){settings=petSettings;slot=instanceSlot;InitializeComponent();var pos=PetSettings.LoadPosition(slot);Left=pos?.Left??(settings.Left+((slot-1)*310));Top=pos?.Top??settings.Top;Title=$"Noxy #{slot}";PetLabel.Text=$"NOXY {slot}";ApplyNoxyColor();updates.Changed+=OnUpdateChanged;timer.Tick+=Tick;timer.Start();movementTimer.Tick+=Animate;movementTimer.Start();}
  void OnUpdateChanged(){if(updates.UpdateAvailable&&!updateNoticeShown){updateNoticeShown=true;Say($"Noxy {updates.Status} Rechtsklick auf mich und öffne Einstellungen zum Aktualisieren.");}else if(!updates.UpdateAvailable){updateNoticeShown=false;}}
  void OnLoaded(object sender,RoutedEventArgs e){Say("Noxy ist wach. Wo sind meine verdammten Wohltaten?");}
- void Tick(object? sender,EventArgs e){seconds++;if(bubbleTime>0&&--bubbleTime==0)Bubble.Visibility=Visibility.Collapsed;
+ void Tick(object? sender,EventArgs e){seconds++;if(seconds%5==0){var latest=PetSettings.Load();if(latest.NoxyColors is {Count:>=3})settings.NoxyColors=latest.NoxyColors;}ApplyNoxyColor();if(seconds%2==0)CheckForEncounter();if(bubbleTime>0&&--bubbleTime==0)Bubble.Visibility=Visibility.Collapsed;
  var y=(int)(Math.Sin(seconds*.12)*3);Body.RenderTransform=new TranslateTransform(0,y);LeftEye.Height=RightEye.Height=settings.MovementMode=="sleep"||seconds%83==0?3:17;
  if(settings.MovementMode=="sleep"){Bubble.Visibility=Visibility.Collapsed;bubbleTime=0;return;}
  bool quiet=(settings.QuietWhenObs&&SystemMonitor.ObsRunning)||(settings.QuietWhenFullscreen&&SystemMonitor.ForegroundFullscreen());if(quiet){Bubble.Visibility=Visibility.Collapsed;bubbleTime=0;return;}
@@ -44,6 +45,8 @@ public partial class MainWindow : Window {
   var comment=await weather.GetDailyCommentAsync();
   if(settings.EnableWeatherComments&&comment is not null)Say(comment);
  }
+ void ApplyNoxyColor(){if(settings.NoxyColors.Count<3)return;var colorText=settings.NoxyColors[Math.Clamp(slot-1,0,2)];if(string.Equals(appliedColor,colorText,StringComparison.OrdinalIgnoreCase))return;try{var color=(System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(colorText);var brush=new SolidColorBrush(color);Body.Fill=brush;Body.Stroke=brush;LeftEar.Stroke=brush;RightEar.Stroke=brush;LeftEye.Fill=brush;RightEye.Fill=brush;LeftFoot.Stroke=brush;RightFoot.Stroke=brush;PetLabel.Foreground=brush;appliedColor=colorText;}catch{}}
+ void CheckForEncounter(){var other=PetEncounterService.FindOverlappingSlot(slot,new WindowInteropHelper(this).Handle);if(other==0){lastEncounterSlot=0;return;}if(other==lastEncounterSlot||DateTime.UtcNow-lastEncounter<TimeSpan.FromSeconds(30))return;lastEncounterSlot=other;lastEncounter=DateTime.UtcNow;Say(slot<other?$"Oh, Noxy {other}! Du stehst mir im Weg. Das ist mein Weg.":"Noxy {other}, ich war zuerst hier! Du bist einfach reingelaufen.");}
  void ObserveForegroundProgram(){
   var process=SystemMonitor.ForegroundProcessName();
   if(string.IsNullOrWhiteSpace(process)||process.Equals("Noxy",StringComparison.OrdinalIgnoreCase)||process.Equals("ApplicationFrameHost",StringComparison.OrdinalIgnoreCase)){pendingProcess=null;pendingProcessSeconds=0;return;}
@@ -120,6 +123,6 @@ public partial class MainWindow : Window {
  void OpenChat(object sender,RoutedEventArgs e)=>new ChatWindow(settings).Show();
  void OpenSettings(object sender,RoutedEventArgs e){try{if(settingsWindow is { IsVisible:true }){settingsWindow.Activate();return;}settingsWindow=new SettingsWindow(settings,updates){Owner=this};settingsWindow.Closed+=(_,_)=>settingsWindow=null;settingsWindow.Show();settingsWindow.Activate();}catch(Exception ex){settingsWindow=null;System.Windows.MessageBox.Show($"Die Einstellungen konnten nicht geöffnet werden.\n\n{ex.Message}","Noxy",MessageBoxButton.OK,MessageBoxImage.Error);}}
  void ExitApp(object sender,RoutedEventArgs e)=>Close();
- void OnClosing(object? sender,System.ComponentModel.CancelEventArgs e){settings.Left=Left;settings.Top=Top;settings.Save();}
+ void OnClosing(object? sender,System.ComponentModel.CancelEventArgs e){settings.SavePosition(slot,Left,Top);}
 }
 
