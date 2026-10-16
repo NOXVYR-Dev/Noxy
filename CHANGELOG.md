@@ -1,5 +1,9 @@
 # Änderungsprotokoll
 
+## [0.3.9] - 2026-10-16
+
+- Überarbeitete Ohren-Animation: Beim Laufen wippen die Ohren stärker, zeitversetzt und mit leichtem Dehnen, damit sie federnd und verspielt wirken.
+
 ## [0.3.8] - 2026-10-16
 
 - Noxys Ohren wippen beim selbstständigen Laufen passend zum Schritt mit.

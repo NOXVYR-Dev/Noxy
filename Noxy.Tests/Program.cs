@@ -203,12 +203,16 @@ static class Program
             var leftEar = (System.Windows.Shapes.Path)window.FindName("LeftEar");
             var rightEar = (System.Windows.Shapes.Path)window.FindName("RightEar");
             for (int i = 0; i < 20 && !movingMotion.Moving; i++) Frame(window, .04);
-            double leftEarBefore = ((RotateTransform)leftEar.RenderTransform).Angle;
-            double rightEarBefore = ((RotateTransform)rightEar.RenderTransform).Angle;
+            double leftEarBefore = ((RotateTransform)((TransformGroup)leftEar.RenderTransform).Children[1]).Angle;
+            double rightEarBefore = ((RotateTransform)((TransformGroup)rightEar.RenderTransform).Children[1]).Angle;
             Frame(window, .07);
-            Check(movingMotion.Moving && (Math.Abs(((RotateTransform)leftEar.RenderTransform).Angle - leftEarBefore) > .1 ||
-                Math.Abs(((RotateTransform)rightEar.RenderTransform).Angle - rightEarBefore) > .1),
+            Check(movingMotion.Moving && Math.Abs(((RotateTransform)((TransformGroup)leftEar.RenderTransform).Children[1]).Angle - leftEarBefore) > .1 &&
+                Math.Abs(((RotateTransform)((TransformGroup)rightEar.RenderTransform).Children[1]).Angle - rightEarBefore) > .1,
                 "Both ears wobble with the actual walking animation");
+            Check(Math.Abs(((RotateTransform)((TransformGroup)leftEar.RenderTransform).Children[1]).Angle) >= 12 ||
+                Math.Abs(((RotateTransform)((TransformGroup)rightEar.RenderTransform).Children[1]).Angle) >= 12,
+                "Walking gives the ears a playful, clearly visible flop");
+            typeof(MainWindow).GetField("angerRemaining", Private)!.SetValue(window, 0d); Frame(window);
             var images = new List<BitmapSource> { Snapshot(window) };
             var liveMotion = Field<PetMotion>(window, "motion"); liveMotion.Throw(new Vector(900, -500)); Frame(window, .07);
             Check(liveMotion.Flying && Math.Abs(((RotateTransform)animation.Children[1]).Angle) > 1, "WPF flight tilts the character visibly");
