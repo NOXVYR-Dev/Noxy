@@ -37,8 +37,8 @@ public partial class MainWindow : Window {
    else {
     var area=CurrentMonitorWorkArea();
     Left+=velocity*(zippy?2.6:1.0);
-    if(Left<=area.Left){Left=area.Left;velocity=Math.Abs(velocity);}
-    if(Left+Width>=area.Right){Left=Math.Max(area.Left,area.Right-Width);velocity=-Math.Abs(velocity);}
+    if(Left<=area.Left&&!HasAdjacentMonitor(false)){Left=area.Left;velocity=Math.Abs(velocity);}
+    if(Left+Width>=area.Right&&!HasAdjacentMonitor(true)){Left=Math.Max(area.Left,area.Right-Width);velocity=-Math.Abs(velocity);}
     if(++motionTicks>=random.Next(zippy?48:95,zippy?82:135)){motionTicks=0;idleTicks=random.Next(zippy?15:35,zippy?48:95);if(random.Next(3)==0)velocity=-velocity;}
    }
   }
@@ -59,6 +59,17 @@ public partial class MainWindow : Window {
   var minTop=Top+(screen.Top-windowTopLeft.Y)/dpi.DpiScaleY;
   var maxTop=Top+(Math.Max(screen.Top,screen.Bottom-heightPixels)-windowTopLeft.Y)/dpi.DpiScaleY;
   return new Rect(minLeft,minTop,Math.Max(0,maxLeft-minLeft),Math.Max(0,maxTop-minTop));
+ }
+ bool HasAdjacentMonitor(bool toRight){
+  var current=System.Windows.Forms.Screen.FromHandle(new WindowInteropHelper(this).Handle).Bounds;
+  var dpi=VisualTreeHelper.GetDpi(this);
+  var topLeft=PointToScreen(new System.Windows.Point(0,0));
+  var centerY=topLeft.Y+ActualHeight*dpi.DpiScaleY/2;
+  return System.Windows.Forms.Screen.AllScreens.Any(candidate=>{
+   if(candidate.Bounds==current)return false;
+   bool touches=toRight?candidate.Bounds.Left==current.Right:candidate.Bounds.Right==current.Left;
+   return touches&&centerY>=Math.Max(current.Top,candidate.Bounds.Top)&&centerY<Math.Min(current.Bottom,candidate.Bounds.Bottom);
+  });
  }
  void Say(string value){BubbleText.Text=value;Bubble.Visibility=Visibility.Visible;bubbleTime=11;}
  void DragWindow(object sender,MouseButtonEventArgs e){if(e.ChangedButton!=MouseButton.Left)return;if(e.ClickCount==2){OpenSettings(sender,e);return;}try{dragging=true;DragMove();}catch(InvalidOperationException){}finally{dragging=false;}}
