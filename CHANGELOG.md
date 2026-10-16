@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## [0.3.1] - 2026-10-16
+
+- Flummi-Wurf aus der echten Ziehgeschwindigkeit: Flug in Zugrichtung, Schwerkraft, Rückpraller an allen vier Monitorrändern und gedämpftes Ausrollen. Langsames Ziehen und Festhalten bleiben normales Platzieren.
+- Zeitbasierte Spaziergänge und sichtbare Schritt-, Körper-, Gesichts- und Schlafanimationen. Körper und Gesicht bleiben beim Wippen zusammen.
+- Korrigierte Bewegungsgrenzen; die Fensterbreite wird nicht mehr zweimal abgezogen. Startpositionen außerhalb des verfügbaren Monitors werden zurückgeholt.
+- Ruhe- und Schlafmodus stoppen Flug und Bewegung. Kontextmenü und Einstellungen pausieren das Pet.
+- Programme und Vollbildzustand werden einmal pro Sekunde statt in jedem Animationsbild abgefragt.
+- Einstellungen öffnen auch bei verweigertem Registry-Lesezugriff; unveränderter Autostart wird beim Speichern nicht neu geschrieben.
+- Automatische Bewegungs-, Physik- und Windows-WPF-Integrationstests hinzugefügt.
+
 ## [0.3.0] - 2026-10-16
 
 - Noxy dreht beim selbstständigen Laufen an den Rändern des aktuellen Monitors um und läuft nicht mehr von selbst auf einen anderen Bildschirm.
@@ -58,4 +68,3 @@
 - Noxy weist mit seiner Sprechblase auf verfügbare Updates hin.
 - Der Update-Knopf wird bei einem verfügbaren Update grün hervorgehoben.
 - Die Versionshinweise des neuesten GitHub-Releases werden in den Einstellungen angezeigt.
-

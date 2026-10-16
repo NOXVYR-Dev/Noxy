@@ -83,6 +83,7 @@ public class SettingsWindow : Window
         movement.Items.Add("Schlafmodus");
         movement.SelectedIndex = settings.MovementMode switch { "zippy" => 1, "static" => 2, "sleep" => 3, _ => 0 };
         panel.Children.Add(movement);
+        panel.Children.Add(new TextBlock { Text = "Flummi-Wurf: Noxy mit der linken Maustaste schnell ziehen und loslassen. Er fliegt in Zugrichtung und prallt an den Rändern des aktuellen Bildschirms ab. Langsames Ziehen platziert ihn. Im Schlaf- und Ruhemodus bleibt der Wurf aus.", TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 0, 0, 12) });
         var speech = AddCheck(panel, "Freche Sprüche aktiv", settings.EnableSpeech);
         var obs = AddCheck(panel, "Ruhemodus bei OBS", settings.QuietWhenObs);
         var full = AddCheck(panel, "Ruhemodus bei Vollbild", settings.QuietWhenFullscreen);
@@ -130,7 +131,12 @@ public class SettingsWindow : Window
         colorSlot.SelectionChanged += (_, _) => ShowSelectedColor();
         red.ValueChanged += (_, _) => UpdateColorPreview(); green.ValueChanged += (_, _) => UpdateColorPreview(); blue.ValueChanged += (_, _) => UpdateColorPreview();
         ShowSelectedColor();
-        var autostart = AddCheck(panel, "Beim Windows-Anmelden automatisch starten", WindowsStartup.IsEnabled());
+        bool? startupState;
+        try { startupState = WindowsStartup.IsEnabled(); }
+        catch (Exception ex) when (ex is System.Security.SecurityException or UnauthorizedAccessException) { startupState = null; }
+        var autostart = AddCheck(panel, "Beim Windows-Anmelden automatisch starten", startupState == true);
+        autostart.IsEnabled = startupState.HasValue;
+        if (!startupState.HasValue) autostart.ToolTip = "Windows erlaubt hier keinen Zugriff auf den Autostart. Die übrigen Einstellungen bleiben verfügbar.";
 
         panel.Children.Add(new TextBlock { Text = "Sprüche alle (Sekunden, mindestens 15):", Foreground = BubbleText, Margin = new Thickness(0, 6, 0, 0) });
         var interval = new WpfTextBox { Text = settings.IntervalSeconds.ToString(), Margin = new Thickness(0, 5, 0, 12), Padding = new Thickness(7, 5, 7, 5), Background = BubbleInput, Foreground = BubbleText, BorderBrush = BubbleBorder };
@@ -153,7 +159,11 @@ public class SettingsWindow : Window
             if (int.TryParse(interval.Text, out var seconds)) settings.IntervalSeconds = Math.Clamp(seconds, 15, 3600);
             try
             {
-                WindowsStartup.SetEnabled(autostart.IsChecked == true);
+                if (startupState.HasValue && autostart.IsChecked != startupState)
+                {
+                    WindowsStartup.SetEnabled(autostart.IsChecked == true);
+                    startupState = autostart.IsChecked == true;
+                }
                 settings.Save();
                 updateStatus.Text = "Einstellungen gespeichert.";
                 applyInstanceLimit?.Invoke(settings.MaxInstances);
@@ -292,4 +302,3 @@ public class SettingsWindow : Window
         checkUpdates.IsEnabled = !updates.IsBusy;
     }
 }
-
