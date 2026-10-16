@@ -50,19 +50,21 @@ public partial class MainWindow : Window {
  }
  Rect CurrentMonitorWorkArea(){
   var screen=System.Windows.Forms.Screen.FromHandle(new WindowInteropHelper(this).Handle).WorkingArea;
-  var transform=PresentationSource.FromVisual(this)?.CompositionTarget?.TransformFromDevice;
-  if(transform is System.Windows.Media.Matrix matrix){
-   var topLeft=matrix.Transform(new System.Windows.Point(screen.Left,screen.Top));
-   var bottomRight=matrix.Transform(new System.Windows.Point(screen.Right,screen.Bottom));
-   return new Rect(topLeft,bottomRight);
-  }
-  return new Rect(screen.Left,screen.Top,screen.Width,screen.Height);
+  var dpi=VisualTreeHelper.GetDpi(this);
+  var windowTopLeft=PointToScreen(new System.Windows.Point(0,0));
+  var widthPixels=ActualWidth*dpi.DpiScaleX;
+  var heightPixels=ActualHeight*dpi.DpiScaleY;
+  var minLeft=Left+(screen.Left-windowTopLeft.X)/dpi.DpiScaleX;
+  var maxLeft=Left+(Math.Max(screen.Left,screen.Right-widthPixels)-windowTopLeft.X)/dpi.DpiScaleX;
+  var minTop=Top+(screen.Top-windowTopLeft.Y)/dpi.DpiScaleY;
+  var maxTop=Top+(Math.Max(screen.Top,screen.Bottom-heightPixels)-windowTopLeft.Y)/dpi.DpiScaleY;
+  return new Rect(minLeft,minTop,Math.Max(0,maxLeft-minLeft),Math.Max(0,maxTop-minTop));
  }
  void Say(string value){BubbleText.Text=value;Bubble.Visibility=Visibility.Visible;bubbleTime=11;}
- void DragWindow(object sender,MouseButtonEventArgs e){if(e.ChangedButton!=MouseButton.Left)return;if(e.ClickCount==2){Say(phrases[random.Next(phrases.Length)]);return;}try{dragging=true;DragMove();}catch(InvalidOperationException){}finally{dragging=false;}}
+ void DragWindow(object sender,MouseButtonEventArgs e){if(e.ChangedButton!=MouseButton.Left)return;if(e.ClickCount==2){OpenSettings(sender,e);return;}try{dragging=true;DragMove();}catch(InvalidOperationException){}finally{dragging=false;}}
  void SayNow(object sender,RoutedEventArgs e)=>Say(phrases[random.Next(phrases.Length)]);
  void OpenChat(object sender,RoutedEventArgs e)=>new ChatWindow(settings).Show();
- void OpenSettings(object sender,RoutedEventArgs e){if(settingsWindow is { IsVisible:true }){settingsWindow.Activate();return;}settingsWindow=new SettingsWindow(settings,updates){Owner=this};settingsWindow.Closed+=(_,_)=>settingsWindow=null;settingsWindow.Show();settingsWindow.Activate();}
+ void OpenSettings(object sender,RoutedEventArgs e){try{if(settingsWindow is { IsVisible:true }){settingsWindow.Activate();return;}settingsWindow=new SettingsWindow(settings,updates){Owner=this};settingsWindow.Closed+=(_,_)=>settingsWindow=null;settingsWindow.Show();settingsWindow.Activate();}catch(Exception ex){settingsWindow=null;System.Windows.MessageBox.Show($"Die Einstellungen konnten nicht geöffnet werden.\n\n{ex.Message}","Noxy",MessageBoxButton.OK,MessageBoxImage.Error);}}
  void ExitApp(object sender,RoutedEventArgs e)=>Close();
  void OnClosing(object? sender,System.ComponentModel.CancelEventArgs e){settings.Left=Left;settings.Top=Top;settings.Save();}
 }
