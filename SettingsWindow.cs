@@ -21,13 +21,15 @@ public class SettingsWindow : Window
     private static readonly WpfBrush BubbleText = new SolidColorBrush(System.Windows.Media.Color.FromRgb(246, 233, 233));
     private static readonly WpfBrush BubbleAccent = new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 103, 122));
     private readonly UpdateService updates;
+    private readonly Action<int>? applyInstanceLimit;
     private readonly TextBlock updateStatus = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 8) };
     private readonly WpfButton installUpdate = new() { Content = "Jetzt aktualisieren", Height = 34, IsEnabled = false, Padding = new Thickness(12, 0, 12, 0) };
     private readonly WpfButton checkUpdates = new() { Content = "Jetzt prüfen", Height = 34, Margin = new Thickness(8, 0, 0, 0), Padding = new Thickness(12, 0, 12, 0) };
 
-    public SettingsWindow(PetSettings settings, UpdateService updateService)
+    public SettingsWindow(PetSettings settings, UpdateService updateService, Action<int>? applyInstanceLimit = null)
     {
         updates = updateService;
+        this.applyInstanceLimit = applyInstanceLimit;
         Title = "Noxy | Einstellungen";
         Width = 470;
         Height = 730;
@@ -90,7 +92,7 @@ public class SettingsWindow : Window
         var weatherComments = AddCheck(panel, "Täglicher Wetter-Spruch (ungefähre Stadt per IP)", settings.EnableWeatherComments);
         panel.Children.Add(new TextBlock { Text = "Nur wenn aktiviert und höchstens einmal täglich: Deine öffentliche IP geht an ipwho.is zur ungefähren Stadtbestimmung. Die Koordinaten werden an Open-Meteo für Wetterdaten gesendet. Die Stadt kann ungenau sein. Wetterdaten: Open-Meteo (CC BY 4.0).", TextWrapping = TextWrapping.Wrap, Opacity = 0.8, Margin = new Thickness(0, -4, 0, 10) });
         panel.Children.Add(new TextBlock { Text = "Noxys auf dem Desktop", Foreground = BubbleAccent, FontSize = 16, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 2, 0, 6) });
-        panel.Children.Add(new TextBlock { Text = "Wie viele Noxys dürfen gleichzeitig laufen? Zusätzliche Noxys startest du durch erneutes Anklicken des Desktop-Symbols. Die Begrenzung gilt für neue Starts.", TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 0, 0, 5) });
+        panel.Children.Add(new TextBlock { Text = "Wähle bis zu drei Noxys. Die Änderung wird beim Speichern sofort übernommen.", TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 0, 0, 5) });
         var maxInstances = new WpfComboBox { Height = 34, Margin = new Thickness(0, 0, 0, 10), Background = BubbleInput, Foreground = BubbleText, BorderBrush = BubbleBorder, BorderThickness = new Thickness(1), Padding = new Thickness(6, 3, 6, 3), Template = CreateComboBoxTemplate(), ItemContainerStyle = movement.ItemContainerStyle };
         maxInstances.Items.Add("1 Noxy"); maxInstances.Items.Add("2 Noxys"); maxInstances.Items.Add("3 Noxys");
         maxInstances.SelectedIndex = Math.Clamp(settings.MaxInstances, 1, 3) - 1;
@@ -154,6 +156,7 @@ public class SettingsWindow : Window
                 WindowsStartup.SetEnabled(autostart.IsChecked == true);
                 settings.Save();
                 updateStatus.Text = "Einstellungen gespeichert.";
+                applyInstanceLimit?.Invoke(settings.MaxInstances);
             }
             catch (Exception ex)
             {
