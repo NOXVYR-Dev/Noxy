@@ -183,6 +183,11 @@ static class Program
             typeof(MainWindow).GetMethod("EndDrag", Private)!.Invoke(window, new object[] { true });
             Check(!Field<PetMotion>(window, "motion").Flying && Field<double>(window, "angerRemaining") > 0,
                 "A shaken pet gets angry instead of being flung on release");
+            var firstShakePhrase = ((TextBlock)window.FindName("BubbleText")).Text;
+            typeof(MainWindow).GetMethod("BecomeAngry", Private)!.Invoke(window, null);
+            var secondShakePhrase = ((TextBlock)window.FindName("BubbleText")).Text;
+            Check(firstShakePhrase != secondShakePhrase && firstShakePhrase.Length > 0 && secondShakePhrase.Length > 0,
+                "Shake reactions use varied phrases without repeating the last one");
             Frame(window);
             Check(((System.Windows.Shapes.Path)window.FindName("LeftAngryBrow")).Visibility == Visibility.Visible && ((System.Windows.Shapes.Path)window.FindName("RightAngryBrow")).Visibility == Visibility.Visible,
                 "The real WPF pet shows its angry eyebrows after a shake");

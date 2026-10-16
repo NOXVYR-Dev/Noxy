@@ -22,7 +22,7 @@ public partial class MainWindow : Window {
  readonly RotateTransform bodyTilt=new();
  readonly ScaleTransform bodySquash=new(1,1);
  double lastFrame, phase, angerRemaining; bool dragging=false, quiet,shakeTriggered,angryFace;
- string appliedColor=""; int lastEncounterSlot=0, encounterReplySlot=0; DateTime lastEncounter=DateTime.MinValue, encounterReplyAt=DateTime.MinValue;
+ string appliedColor=""; int lastEncounterSlot=0, encounterReplySlot=0,lastShakePhrase=-1; DateTime lastEncounter=DateTime.MinValue, encounterReplyAt=DateTime.MinValue;
  int seconds=0, bubbleTime=0,nextSensorCommentSeconds=300; bool lastFallout=false,lastWow=false,updateNoticeShown=false;
  int? cpuPercent,gpuPercent;
  readonly string[] phrases={
@@ -31,6 +31,14 @@ public partial class MainWindow : Window {
   "Du hast schon wieder ein Fenster geöffnet. Soll ich eins davon bewachen?", "Ich habe kurz nachgedacht. War anstrengend. Mach ich morgen wieder.","Wenn das Absicht war, war es mutig. Wenn nicht, auch.","Dein PC klingt beschäftigt. Ich bin es jedenfalls nicht.","Klick ruhig weiter. Irgendwann muss ja etwas Sinnvolles passieren.","Ich habe einen Witz über Updates. Der kommt gleich nach dem Neustart.","Mein Fitnessprogramm besteht aus einem Spaziergang über deinen Bildschirm.","Ich bin klein, flauschig und habe trotzdem mehr Überblick als dein Desktop.",
   "Das Fenster da hinten sieht wichtig aus. Ich ignoriere es für dich.","Du arbeitest wirklich hart daran, beschäftigt auszusehen.","Ich wollte einen Kaffee holen. Dann fiel mir ein, dass ich keine Hände habe.","Heute schon etwas erledigt? Ich auch nicht. Teamwork!", "Ich bewerte deine Fensterordnung mit: mutig.","Keine Sorge, ich passe auf. Worauf, weiß ich noch nicht.","Du brauchst keine Pause. Aber ich könnte eine gebrauchen.","Wenn du mich suchst: Ich bin genau da, wo du mich gestern vergessen hast.",
   "Ich habe heute schon drei Pixel bewegt. Bitte keine Überanstrengung.","Dein Desktop hat mehr offene Fenster als ich offene Fragen.","Ich bin nicht im Weg. Ich bin eine dekorative Herausforderung.","Gute Nachrichten: Ich habe nichts kaputt gemacht. Bis jetzt.","Das war bestimmt der Plan. Ich unterstütze ihn vorsichtshalber.","Du siehst konzentriert aus. Ich mache lieber keinen Lärm. Außer diesem Spruch.","Ich bin bereit für Abenteuer. Also für einen Spaziergang bis zum Bildschirmrand.","Bei dem Tempo wird sogar mein Bildschirmschoner nervös."
+ };
+ readonly string[] shakePhrases={
+  "Hey, vorsichtig mit meinem Fell!","Uff! Ich bin ein Desktop-Pet, kein Cocktailshaker.","Mir dreht sich schon der ganze Desktop.",
+  "Was soll das? Ich bin doch keine Schneekugel!","Einmal schütteln reicht. Ich bin wach!","Bitte nicht schütteln – mein Gehirn lädt schon langsam genug.",
+  "Hilfe, der Bildschirm macht Purzelbäume!","Ich wackle freiwillig. Das hier war nicht abgesprochen.","Vorsicht! Gleich schüttle ich zurück.",
+  "Wenn du mich schüttelst, wird mir pixelig.","Ich bin flauschig, nicht schüttelfest!","Okay, okay, ich hab's verstanden. Die Welt ist rund.",
+  "Kann ich bitte wieder festen Desktop-Boden unter den Füßen haben?","Das gibt eine Beschwerde beim Mauszeiger.","Na warte, das merk ich mir. Vielleicht.",
+  "Mein innerer Kompass zeigt jetzt in alle Richtungen.","Stopp! Meine Ohren sind schon ganz durcheinander.","Ich wollte sowieso kurz durchgeschüttelt werden. Also: nein."
  };
  public MainWindow(PetSettings petSettings,int instanceSlot){settings=petSettings;slot=instanceSlot;nextSensorCommentSeconds=random.Next(240,361);InitializeComponent();var pos=PetSettings.LoadPosition(slot);Left=pos?.Left??(settings.Left+((slot-1)*310));Top=pos?.Top??settings.Top;if(!double.IsFinite(Left))Left=100;if(!double.IsFinite(Top))Top=100;Title=$"Noxy #{slot}";var transforms=new TransformGroup();transforms.Children.Add(bodySquash);transforms.Children.Add(bodyTilt);transforms.Children.Add(bodyOffset);PetBody.RenderTransform=transforms;LeftFoot.RenderTransform=leftStep;RightFoot.RenderTransform=rightStep;LeftEye.RenderTransform=gazeLeft;RightEye.RenderTransform=gazeRight;LocationChanged+=(_,_)=>{if(dragging){var now=animationClock.Elapsed.TotalSeconds;var position=new System.Windows.Point(Left,Top);dragVelocity.Add(position,now);if(!shakeTriggered&&shakeDetector.Add(position,now))BecomeAngry();}};Closed+=(_,_)=>{timer.Stop();movementTimer.Stop();updates.Changed-=OnUpdateChanged;};ApplyNoxyColor();updates.Changed+=OnUpdateChanged;timer.Tick+=Tick;timer.Start();movementTimer.Tick+=Animate;movementTimer.Start();}
  void OnUpdateChanged(){if(updates.UpdateAvailable&&!updateNoticeShown){updateNoticeShown=true;Say($"Noxy {updates.Status} Rechtsklick auf mich und öffne Einstellungen zum Aktualisieren.");}else if(!updates.UpdateAvailable){updateNoticeShown=false;}}
@@ -135,7 +143,8 @@ public partial class MainWindow : Window {
   return new Rect(minLeft,minTop,maxLeft-minLeft,maxTop-minTop);
  }
  void Say(string value){if(settings.MovementMode=="sleep"||quiet)return;BubbleText.Text=value;Bubble.Visibility=Visibility.Visible;bubbleTime=11;}
- void BecomeAngry(){if(quiet||settings.MovementMode=="sleep")return;shakeTriggered=true;angerRemaining=3.5;Say("Lass das, du Schüttelheini!");}
+ string NextShakePhrase(){int index;do{index=random.Next(shakePhrases.Length);}while(index==lastShakePhrase);lastShakePhrase=index;return shakePhrases[index];}
+ void BecomeAngry(){if(quiet||settings.MovementMode=="sleep")return;shakeTriggered=true;angerRemaining=3.5;Say(NextShakePhrase());}
  void DragWindow(object sender,MouseButtonEventArgs e){
   if(e.ChangedButton!=MouseButton.Left)return;
   if(e.ClickCount==2){motion.Stop();OpenSettings(sender,e);return;}

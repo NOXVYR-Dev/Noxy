@@ -1,5 +1,10 @@
 # Änderungsprotokoll
 
+## [0.3.6] - 2026-10-16
+
+- Noxy reagiert aufs Schütteln mit vielen unterschiedlichen, kurzen Sprüchen, die niemanden wegen des Geschlechts ansprechen.
+- Derselbe Spruch kommt nicht direkt zweimal hintereinander.
+
 ## [0.3.5] - 2026-10-16
 
 - Wenn Noxy beim Festhalten schnell hin und her geschüttelt wird, wird er für kurze Zeit sichtbar wütend und kommentiert das frech.
