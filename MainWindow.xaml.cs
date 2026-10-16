@@ -7,7 +7,7 @@ using System.Windows.Interop;
 namespace Noxy;
 public partial class MainWindow : Window {
  readonly DispatcherTimer timer=new(){Interval=TimeSpan.FromSeconds(1)};
- readonly DispatcherTimer movementTimer=new(){Interval=TimeSpan.FromMilliseconds(33)};
+ readonly DispatcherTimer movementTimer=new(){Interval=TimeSpan.FromMilliseconds(16)};
  readonly Random random=new();
  readonly UpdateService updates=new();
  readonly WeatherService weather=new();

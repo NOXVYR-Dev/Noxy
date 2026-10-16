@@ -1,14 +1,15 @@
 # Noxy – Desktop-Pet
 
-## Windows-Version 0.3.1: Bewegung und Flummi
+## Windows-Version 0.3.2: Sanfterer Flug
 
-Version 0.3.1 erscheint als reguläres GitHub-Release. Bereits installierte Noxys erkennen das Update und zeigen einen Hinweis an. Klicke in den Einstellungen auf **Jetzt aktualisieren**. Alternativ stehen dort die direkte Setup-Datei und das portable ZIP unter **Releases** bereit.
+Version 0.3.2 erscheint als reguläres GitHub-Release. Bereits installierte Noxys erkennen das Update und zeigen einen Hinweis an. Klicke in den Einstellungen auf **Jetzt aktualisieren**. Alternativ stehen dort die direkte Setup-Datei und das portable ZIP unter **Releases** bereit.
 
 - **Herumlaufen / Zappelig:** selbstständige Spaziergänge mit Pausen, sichtbaren Schritten, Wippen, Blickrichtung und Blinzeln.
 - **Flummi-Wurf:** Noxy mit der linken Maustaste schnell ziehen und während der Bewegung loslassen. Er übernimmt Richtung und Tempo, fliegt mit Schwerkraft weiter und prallt an allen vier Rändern des aktuellen Monitor-Arbeitsbereichs zurück. Rückpraller verlieren Energie; spätestens nach fünf Sekunden endet der Flug. Danach gilt wieder der gewählte Bewegungsmodus.
 - Langsam ziehen oder vor dem Loslassen kurz stillhalten platziert Noxy ohne Wurf. Erneutes Festhalten stoppt einen laufenden Flug.
 - **Statisch:** bleibt stehen und atmet/blinzelt; absichtliches Werfen ist möglich. **Schlafmodus:** geschlossene Augen, Zs, keine Spaziergänge oder Würfe. OBS-/Vollbild-Ruhemodus stoppt Bewegung und Sprechblasen wie bisher.
 - Ein geöffnetes Kontextmenü oder Einstellungsfenster pausiert die Bewegung. Doppelklick öffnet weiterhin die Einstellungen.
+- Der Flug wird nun mit etwa 60 Bildern pro Sekunde und einer geringeren Höchstgeschwindigkeit berechnet, damit Würfe und Rückpraller weicher wirken.
 - Korrigierte Bildschirmgrenzen: Die Fensterbreite wird nicht mehr doppelt abgezogen. Wie in Version 0.3.0 bleibt Noxy beim Laufen auf dem aktuellen Monitor; manuelles Ziehen auf andere Monitore bleibt möglich.
 
 Diese Alpha ist eine separate Fortsetzung der Version 0.3.0. Die portable Alpha verwendet dieselben lokalen Einstellungen und dasselbe Instanzlimit wie eine bereits installierte App. Vor dem Test eine bereits laufende Noxy-Version über deren Menü beenden.

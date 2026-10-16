@@ -29,7 +29,7 @@ public sealed class PetMotion
     {
         Stop();
         if (!double.IsFinite(velocity.X) || !double.IsFinite(velocity.Y) || velocity.Length < 260) return false;
-        if (velocity.Length > 1800) velocity *= 1800 / velocity.Length;
+        if (velocity.Length > 1200) velocity *= 1200 / velocity.Length;
         VelocityX = velocity.X;
         VelocityY = velocity.Y;
         if (Math.Abs(velocity.X) > 1) direction = Math.Sign(velocity.X);
@@ -57,7 +57,7 @@ public sealed class PetMotion
             for (int i = 0; i < count && Flying; i++)
             {
                 flightTime += dt;
-                VelocityY += 980 * dt;
+                VelocityY += 860 * dt;
                 VelocityX *= Math.Exp(-.32 * dt);
                 position.X += VelocityX * dt;
                 position.Y += VelocityY * dt;

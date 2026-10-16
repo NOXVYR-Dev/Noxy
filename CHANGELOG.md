@@ -1,5 +1,10 @@
 # Änderungsprotokoll
 
+## [0.3.2] - 2026-10-16
+
+- Bewegung und Flummi-Flug werden mit etwa 60 statt 30 Bildern pro Sekunde aktualisiert.
+- Sanftere Würfe: Spitzen beim Loslassen sind begrenzt und die Schwerkraft ist etwas niedriger. Noxy bewegt sich dadurch weicher über den Bildschirm und bleibt beim Fliegen etwas länger in der Luft.
+
 ## [0.3.1] - 2026-10-16
 
 - Flummi-Wurf aus der echten Ziehgeschwindigkeit: Flug in Zugrichtung, Schwerkraft, Rückpraller an allen vier Monitorrändern und gedämpftes Ausrollen. Langsames Ziehen und Festhalten bleiben normales Platzieren.
