@@ -161,7 +161,6 @@ public partial class MainWindow : Window {
   lastFrame=animationClock.Elapsed.TotalSeconds;
  }
  void SayNow(object sender,RoutedEventArgs e)=>Say(phrases[random.Next(phrases.Length)]);
- void OpenChat(object sender,RoutedEventArgs e)=>new ChatWindow(settings).Show();
  void ApplyInstanceLimit(int count){if(slot>count){Close();return;}foreach(var freeSlot in ProcessInstanceManager.GetFreeSlots(count))try{var path=Environment.ProcessPath;if(!string.IsNullOrWhiteSpace(path))Process.Start(new ProcessStartInfo(path){UseShellExecute=true});}catch{} }
  void OpenSettings(object sender,RoutedEventArgs e){try{if(settingsWindow is { IsVisible:true }){settingsWindow.Activate();return;}settingsWindow=new SettingsWindow(settings,updates,ApplyInstanceLimit){Owner=this};settingsWindow.Closed+=(_,_)=>settingsWindow=null;settingsWindow.Show();settingsWindow.Activate();}catch(Exception ex){settingsWindow=null;System.Windows.MessageBox.Show($"Die Einstellungen konnten nicht geöffnet werden.\n\n{ex.Message}","Noxy",MessageBoxButton.OK,MessageBoxImage.Error);}}
  void ExitApp(object sender,RoutedEventArgs e)=>Close();

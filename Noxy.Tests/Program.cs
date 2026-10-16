@@ -215,8 +215,8 @@ static class Program
             window.ContextMenu.IsOpen = false;
             var options = new SettingsWindow(settings, Field<UpdateService>(window, "updates")) { Owner = window };
             options.Show(); Pump(.05); Check(options.IsVisible, "Existing settings window opens successfully"); options.Close();
-            var chat = new ChatWindow(settings) { Owner = window }; chat.Show(); Pump(.05);
-            Check(chat.IsVisible, "Existing AI chat window opens without sending an API request"); chat.Close();
+            Check(!window.ContextMenu.Items.OfType<MenuItem>().Any(item => Equals(item.Header, "KI-Chat")),
+                "The removed AI chat is no longer available from the pet menu");
             Check(SystemMonitor.RamPercent() is >= 0 and <= 100, "Existing RAM sensor returns a plausible Windows reading");
             _ = SystemMonitor.CpuPercent(); System.Threading.Thread.Sleep(150);
             Check(SystemMonitor.CpuPercent() is >= 0 and <= 100, "Windows CPU sensor returns a plausible load percentage");
@@ -228,7 +228,7 @@ static class Program
             var status = (string)typeof(MainWindow).GetMethod("SystemUsageComment", Private)!.Invoke(window, null)!;
             Check(status.Contains("CPU 31 %") && status.Contains("GPU-Spitze 47 %") && status.Contains("RAM "), "PC status message combines CPU, GPU, and RAM readings");
             window.Close(); app.Shutdown();
-            results.Add($"\n{passed} checks passed. Windows WPF integration included. No live chat/weather API calls or user settings writes.");
+            results.Add($"\n{passed} checks passed. Windows WPF integration included. No live weather API calls or user settings writes.");
             File.WriteAllLines(Path.Combine(output, "Noxy-Alpha-Testprotokoll.txt"), results);
             return 0;
         }

@@ -14,7 +14,6 @@ public class PetSettings {
  public bool EnableWalking {get;set;}=true;
  public string MovementMode {get;set;}="walk";
  public bool EnableSensors {get;set;}=true;
- public string Model {get;set;}="gpt-4.1-mini";
  public double Left {get;set;}=100;
  public double Top {get;set;}=100;
  public static string DirectoryPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Noxy");

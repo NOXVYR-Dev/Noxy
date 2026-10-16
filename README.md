@@ -1,8 +1,8 @@
 # Noxy – Desktop-Pet
 
-## Windows-Version 0.3.6: Mehr Sprüche beim Schütteln
+## Windows-Version 0.3.7: KI-Chat entfernt
 
-Version 0.3.6 erscheint als reguläres GitHub-Release. Bereits installierte Noxys erkennen das Update und zeigen einen Hinweis an. Klicke in den Einstellungen auf **Jetzt aktualisieren**. Alternativ stehen dort die direkte Setup-Datei und das portable ZIP unter **Releases** bereit.
+Version 0.3.7 erscheint als reguläres GitHub-Release. Bereits installierte Noxys erkennen das Update und zeigen einen Hinweis an. Klicke in den Einstellungen auf **Jetzt aktualisieren**. Alternativ stehen dort die direkte Setup-Datei und das portable ZIP unter **Releases** bereit.
 
 - **Schütteln:** Noxy wird beim schnellen Hin-und-her-Bewegen während des Festhaltens für kurze Zeit wütend, zeigt eine veränderte Mimik und wählt aus vielen kurzen, geschlechtsneutralen Sprüchen. Ein Spruch wiederholt sich nicht direkt. Kleine Mausbewegungen lösen das nicht aus; erkannte Schüttler verhindern einen versehentlichen Wurf beim Loslassen.
 
@@ -18,7 +18,7 @@ Version 0.3.6 erscheint als reguläres GitHub-Release. Bereits installierte Noxy
 
 Diese Alpha ist eine separate Fortsetzung der Version 0.3.0. Die portable Alpha verwendet dieselben lokalen Einstellungen und dasselbe Instanzlimit wie eine bereits installierte App. Vor dem Test eine bereits laufende Noxy-Version über deren Menü beenden.
 
-Automatische Prüfungen: `dotnet run --project ../Noxy.Tests/Noxy.Tests.csproj -c Release -- ../../outputs`. Sie prüfen Bewegung, Wurfgeschwindigkeit, Rückpraller, Ruhemodi, 250 zufällige Flugbahnen und das echte WPF-Fenster einschließlich der Verbindung zwischen Positionsereignissen und Wurfstart. KI-Chat und Einstellungen werden geöffnet; CPU-, GPU- und RAM-Abfragen sowie die PC-Statusmeldung werden geprüft. Bezahlte Chat-Anfragen, Wetter, Updates, Installation und Autostart werden nicht Ende zu Ende getestet. Ein manueller Mauswurf sowie gemischte DPI-Skalierungen auf mehreren physischen Monitoren bleiben zur Abnahme am Ziel-PC.
+Automatische Prüfungen: `dotnet run --project ../Noxy.Tests/Noxy.Tests.csproj -c Release -- ../../outputs`. Sie prüfen Bewegung, Wurfgeschwindigkeit, Rückpraller, Ruhemodi, 250 zufällige Flugbahnen und das echte WPF-Fenster einschließlich der Verbindung zwischen Positionsereignissen und Wurfstart. Einstellungen werden geöffnet; CPU-, GPU- und RAM-Abfragen sowie die PC-Statusmeldung werden geprüft. Wetter, Updates, Installation und Autostart werden nicht Ende zu Ende getestet. Ein manueller Mauswurf sowie gemischte DPI-Skalierungen auf mehreren physischen Monitoren bleiben zur Abnahme am Ziel-PC.
 
 Einstellungen öffnen sich nun auch bei gesperrtem Windows-Autostartzugriff; in diesem Fall ist nur die Autostart-Option deaktiviert. Unveränderte Autostart-Einstellungen werden beim Speichern nicht erneut in die Registry geschrieben.
 

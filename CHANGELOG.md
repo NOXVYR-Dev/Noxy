@@ -1,5 +1,9 @@
 # Änderungsprotokoll
 
+## [0.3.7] - 2026-10-16
+
+- Der optionale KI-Chat wurde aus dem Pet-Menü und der Windows-App entfernt. Noxy fragt damit keinen OpenAI-API-Schlüssel mehr ab und sendet keine Chat-Anfragen.
+
 ## [0.3.6] - 2026-10-16
 
 - Noxy reagiert aufs Schütteln mit vielen unterschiedlichen, kurzen Sprüchen, die niemanden wegen des Geschlechts ansprechen.
