@@ -199,6 +199,16 @@ static class Program
             var animation = (TransformGroup)body.RenderTransform;
             double before = ((TranslateTransform)animation.Children[2]).Y; Frame(window, .07);
             Check(((TranslateTransform)animation.Children[2]).Y != before, "WPF character visibly animates between frames");
+            var movingMotion = Field<PetMotion>(window, "motion");
+            var leftEar = (System.Windows.Shapes.Path)window.FindName("LeftEar");
+            var rightEar = (System.Windows.Shapes.Path)window.FindName("RightEar");
+            for (int i = 0; i < 20 && !movingMotion.Moving; i++) Frame(window, .04);
+            double leftEarBefore = ((RotateTransform)leftEar.RenderTransform).Angle;
+            double rightEarBefore = ((RotateTransform)rightEar.RenderTransform).Angle;
+            Frame(window, .07);
+            Check(movingMotion.Moving && (Math.Abs(((RotateTransform)leftEar.RenderTransform).Angle - leftEarBefore) > .1 ||
+                Math.Abs(((RotateTransform)rightEar.RenderTransform).Angle - rightEarBefore) > .1),
+                "Both ears wobble with the actual walking animation");
             var images = new List<BitmapSource> { Snapshot(window) };
             var liveMotion = Field<PetMotion>(window, "motion"); liveMotion.Throw(new Vector(900, -500)); Frame(window, .07);
             Check(liveMotion.Flying && Math.Abs(((RotateTransform)animation.Children[1]).Angle) > 1, "WPF flight tilts the character visibly");

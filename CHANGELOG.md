@@ -1,5 +1,9 @@
 # Änderungsprotokoll
 
+## [0.3.8] - 2026-10-16
+
+- Noxys Ohren wippen beim selbstständigen Laufen passend zum Schritt mit.
+
 ## [0.3.7] - 2026-10-16
 
 - Der optionale KI-Chat wurde aus dem Pet-Menü und der Windows-App entfernt. Noxy fragt damit keinen OpenAI-API-Schlüssel mehr ab und sendet keine Chat-Anfragen.

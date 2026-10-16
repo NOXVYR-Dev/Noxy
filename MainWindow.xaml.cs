@@ -20,6 +20,7 @@ public partial class MainWindow : Window {
  readonly Stopwatch animationClock=Stopwatch.StartNew();
  readonly TranslateTransform bodyOffset=new(), leftStep=new(), rightStep=new(), gazeLeft=new(), gazeRight=new();
  readonly RotateTransform bodyTilt=new();
+ readonly RotateTransform leftEarWobble=new(),rightEarWobble=new();
  readonly ScaleTransform bodySquash=new(1,1);
  double lastFrame, phase, angerRemaining; bool dragging=false, quiet,shakeTriggered,angryFace;
  string appliedColor=""; int lastEncounterSlot=0, encounterReplySlot=0,lastShakePhrase=-1; DateTime lastEncounter=DateTime.MinValue, encounterReplyAt=DateTime.MinValue;
@@ -40,7 +41,7 @@ public partial class MainWindow : Window {
   "Kann ich bitte wieder festen Desktop-Boden unter den Füßen haben?","Das gibt eine Beschwerde beim Mauszeiger.","Na warte, das merk ich mir. Vielleicht.",
   "Mein innerer Kompass zeigt jetzt in alle Richtungen.","Stopp! Meine Ohren sind schon ganz durcheinander.","Ich wollte sowieso kurz durchgeschüttelt werden. Also: nein."
  };
- public MainWindow(PetSettings petSettings,int instanceSlot){settings=petSettings;slot=instanceSlot;nextSensorCommentSeconds=random.Next(240,361);InitializeComponent();var pos=PetSettings.LoadPosition(slot);Left=pos?.Left??(settings.Left+((slot-1)*310));Top=pos?.Top??settings.Top;if(!double.IsFinite(Left))Left=100;if(!double.IsFinite(Top))Top=100;Title=$"Noxy #{slot}";var transforms=new TransformGroup();transforms.Children.Add(bodySquash);transforms.Children.Add(bodyTilt);transforms.Children.Add(bodyOffset);PetBody.RenderTransform=transforms;LeftFoot.RenderTransform=leftStep;RightFoot.RenderTransform=rightStep;LeftEye.RenderTransform=gazeLeft;RightEye.RenderTransform=gazeRight;LocationChanged+=(_,_)=>{if(dragging){var now=animationClock.Elapsed.TotalSeconds;var position=new System.Windows.Point(Left,Top);dragVelocity.Add(position,now);if(!shakeTriggered&&shakeDetector.Add(position,now))BecomeAngry();}};Closed+=(_,_)=>{timer.Stop();movementTimer.Stop();updates.Changed-=OnUpdateChanged;};ApplyNoxyColor();updates.Changed+=OnUpdateChanged;timer.Tick+=Tick;timer.Start();movementTimer.Tick+=Animate;movementTimer.Start();}
+ public MainWindow(PetSettings petSettings,int instanceSlot){settings=petSettings;slot=instanceSlot;nextSensorCommentSeconds=random.Next(240,361);InitializeComponent();var pos=PetSettings.LoadPosition(slot);Left=pos?.Left??(settings.Left+((slot-1)*310));Top=pos?.Top??settings.Top;if(!double.IsFinite(Left))Left=100;if(!double.IsFinite(Top))Top=100;Title=$"Noxy #{slot}";var transforms=new TransformGroup();transforms.Children.Add(bodySquash);transforms.Children.Add(bodyTilt);transforms.Children.Add(bodyOffset);PetBody.RenderTransform=transforms;LeftFoot.RenderTransform=leftStep;RightFoot.RenderTransform=rightStep;LeftEye.RenderTransform=gazeLeft;RightEye.RenderTransform=gazeRight;LeftEar.RenderTransform=leftEarWobble;RightEar.RenderTransform=rightEarWobble;LeftEar.RenderTransformOrigin=RightEar.RenderTransformOrigin=new System.Windows.Point(.5,.85);LocationChanged+=(_,_)=>{if(dragging){var now=animationClock.Elapsed.TotalSeconds;var position=new System.Windows.Point(Left,Top);dragVelocity.Add(position,now);if(!shakeTriggered&&shakeDetector.Add(position,now))BecomeAngry();}};Closed+=(_,_)=>{timer.Stop();movementTimer.Stop();updates.Changed-=OnUpdateChanged;};ApplyNoxyColor();updates.Changed+=OnUpdateChanged;timer.Tick+=Tick;timer.Start();movementTimer.Tick+=Animate;movementTimer.Start();}
  void OnUpdateChanged(){if(updates.UpdateAvailable&&!updateNoticeShown){updateNoticeShown=true;Say($"Noxy {updates.Status} Rechtsklick auf mich und öffne Einstellungen zum Aktualisieren.");}else if(!updates.UpdateAvailable){updateNoticeShown=false;}}
  void OnLoaded(object sender,RoutedEventArgs e){var area=CurrentMonitorWorkArea();Left=Math.Clamp(Left,area.Left,area.Right);Top=Math.Clamp(Top,area.Top,area.Bottom);RefreshQuiet();lastFrame=animationClock.Elapsed.TotalSeconds;Say("Noxy ist wach. Wo sind meine verdammten Wohltaten?");}
  void Tick(object? sender,EventArgs e){seconds++;if(seconds%5==0){var latest=PetSettings.Load();if(latest.NoxyColors is {Count:>=3})settings.NoxyColors=latest.NoxyColors;settings.MaxInstances=latest.MaxInstances;if(slot>latest.MaxInstances){Close();return;}}ApplyNoxyColor();if(seconds%2==0)CheckForEncounter();ReplyToEncounter();if(bubbleTime>0&&--bubbleTime==0)Bubble.Visibility=Visibility.Collapsed;
@@ -118,6 +119,8 @@ public partial class MainWindow : Window {
   leftStep.X=stride*7;rightStep.X=-stride*7;
   leftStep.Y=-Math.Max(0,stride)*9;rightStep.Y=-Math.Max(0,-stride)*9;
   bodyOffset.Y=motion.Moving?-Math.Abs(Math.Cos(phase))*4:Math.Sin(phase)*(sleeping?.6:1.8);
+  leftEarWobble.Angle=Math.Sin(phase*.9)*(motion.Moving?10:angry?3:1);
+  rightEarWobble.Angle=Math.Sin(phase*.9+1.1)*(motion.Moving?10:angry?3:1);
   bodyTilt.Angle=motion.Flying?Math.Clamp(motion.VelocityX/35,-24,24):angry?Math.Sin(phase*14)*9:dragging?Math.Sin(phase*2)*5:stride*2;
   bodySquash.ScaleX=1+motion.Impact*.12;
   bodySquash.ScaleY=1-motion.Impact*.1;
