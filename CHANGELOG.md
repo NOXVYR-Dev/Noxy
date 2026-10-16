@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## [0.2.9] - 2026-10-16
+
+- Die Darstellung des Pets bleibt bei der bisherigen Form; der Schriftzug „Noxy“ auf dem Pet wurde entfernt.
+- Änderungen an der Anzahl von ein bis drei Pets werden nach dem Speichern sofort übernommen.
+- Eigenständiges kleines Pet-Symbol für Desktop- und Startmenü-Verknüpfungen; Updates erneuern auch das Verknüpfungssymbol.
+- Die Sprechblase übernimmt Rand- und Textakzentfarbe des jeweiligen Pets.
+- Treffen sich zwei Pets, begrüßt das kleinere sie und das andere antwortet nach einem kurzen Moment mit einem frechen Spruch.
+
 ## [0.2.8] - 2026-10-16
 
 - Noxy verhindert Mehrfachstarts oberhalb des eingestellten Limits; wahlweise sind ein, zwei oder drei gleichzeitig gestartete Noxys möglich.
