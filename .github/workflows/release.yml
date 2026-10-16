@@ -31,6 +31,10 @@ jobs:
           "value=$version" >> $env:GITHUB_OUTPUT
           "tag=v$version" >> $env:GITHUB_OUTPUT
 
+      - name: Generate Noxy app icon
+        shell: pwsh
+        run: ./New-Icon.ps1
+
       - name: Prepare release notes
         shell: pwsh
         run: |
