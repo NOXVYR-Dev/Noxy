@@ -99,6 +99,7 @@ public sealed class UpdateService
         Status = "Update wird heruntergeladen …";
         Changed?.Invoke();
         string? stage = null;
+        Process? updaterProcess = null;
         try
         {
             var appPath = Environment.ProcessPath;
@@ -125,6 +126,7 @@ public sealed class UpdateService
             if (!File.Exists(newApp)) throw new InvalidDataException("Im Update-Paket fehlt Noxy.exe.");
 
             var scriptPath = Path.Combine(Path.GetTempPath(), $"Noxy-apply-update-{Guid.NewGuid():N}.ps1");
+            var readyPath = Path.Combine(stage, "updater.ready");
             var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Noxy", "update.log");
             Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
             await File.WriteAllTextAsync(scriptPath, BuildUpdateScript());
@@ -147,22 +149,35 @@ public sealed class UpdateService
             start.ArgumentList.Add(newApp);
             start.ArgumentList.Add("-StagePath");
             start.ArgumentList.Add(stage);
+            start.ArgumentList.Add("-ReadyPath");
+            start.ArgumentList.Add(readyPath);
             start.ArgumentList.Add("-ProcessIdToWait");
             start.ArgumentList.Add(Environment.ProcessId.ToString());
             start.ArgumentList.Add("-LogPath");
             start.ArgumentList.Add(logPath);
-            if (Process.Start(start) is null)
+            updaterProcess = Process.Start(start);
+            if (updaterProcess is null)
                 throw new IOException("Der Update-Vorgang konnte nicht gestartet werden.");
+            for (var i = 0; i < 200 && !File.Exists(readyPath) && !updaterProcess.HasExited; i++)
+                await Task.Delay(100);
+            if (!File.Exists(readyPath))
+            {
+                if (!updaterProcess.HasExited)
+                {
+                    try { updaterProcess.Kill(true); } catch { }
+                }
+                throw new IOException($"Der Update-Helfer hat nicht gestartet. Noxy bleibt geöffnet. Protokoll: {logPath}");
+            }
             Status = "Update wird installiert. Noxy startet gleich neu …";
             Changed?.Invoke();
             System.Windows.Application.Current.Shutdown();
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException or UnauthorizedAccessException or InvalidDataException)
+        catch (Exception ex)
         {
             Status = $"Update fehlgeschlagen: {ex.Message}";
             IsBusy = false;
             Changed?.Invoke();
-            if (stage is not null)
+            if (stage is not null && (updaterProcess is null || updaterProcess.HasExited))
             {
                 try { Directory.Delete(stage, true); } catch { }
             }
@@ -174,6 +189,7 @@ param(
     [Parameter(Mandatory=$true)][string]$AppPath,
     [Parameter(Mandatory=$true)][string]$NewAppPath,
     [Parameter(Mandatory=$true)][string]$StagePath,
+    [Parameter(Mandatory=$true)][string]$ReadyPath,
     [Parameter(Mandatory=$true)][int]$ProcessIdToWait,
     [Parameter(Mandatory=$true)][string]$LogPath
 )
@@ -183,6 +199,7 @@ function Write-Log([string]$Message) {
 }
 try {
     Write-Log 'Update helper started.'
+    Set-Content -LiteralPath $ReadyPath -Value 'ready' -Encoding ascii
     $old = Get-Process -Id $ProcessIdToWait -ErrorAction SilentlyContinue
     if ($old -and -not $old.WaitForExit(120000)) { throw 'Noxy wurde nicht rechtzeitig beendet; die alte Version bleibt erhalten.' }
     if (-not (Test-Path -LiteralPath $NewAppPath)) { throw 'Die neue Noxy.exe fehlt im Update-Paket.' }
@@ -221,7 +238,7 @@ try {
     private static HttpClient CreateClient()
     {
         var client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("NoxyDesktopPet", "0.2.2"));
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("NoxyDesktopPet", "0.2.3"));
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         return client;
     }
