@@ -4,11 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "**.cs"
-      - "**.xaml"
-      - "*.csproj"
       - "version.json"
-      - ".github/workflows/release.yml"
   workflow_dispatch:
 
 permissions:
@@ -47,6 +43,21 @@ jobs:
           $hash = (Get-FileHash Noxy-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
           Set-Content -Path Noxy-win-x64.zip.sha256 -Value $hash -NoNewline
 
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build Windows installer
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.value }}"
+          $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $compiler)) { throw "Inno Setup compiler not found: $compiler" }
+          & $compiler "/DMyAppVersion=$version" setup.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE" }
+          $installer = "installer-output\Noxy-Setup-x64.exe"
+          $hash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -Path "$installer.sha256" -Value $hash -NoNewline
+
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -55,5 +66,5 @@ jobs:
           $tag = "${{ steps.version.outputs.tag }}"
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) { throw "Release $tag already exists. Increase version.json before releasing." }
-          gh release create $tag Noxy-win-x64.zip Noxy-win-x64.zip.sha256 --title "Noxy ${{ steps.version.outputs.value }}" --notes "Windows x64 release. Noxy checks GitHub Releases for updates every five minutes."
+          gh release create $tag Noxy-win-x64.zip Noxy-win-x64.zip.sha256 installer-output/Noxy-Setup-x64.exe installer-output/Noxy-Setup-x64.exe.sha256 --title "Noxy ${{ steps.version.outputs.value }}" --notes "Windows x64 installer and portable package. Noxy checks GitHub Releases for updates every five minutes."
 
