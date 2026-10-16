@@ -24,6 +24,8 @@ In den Einstellungen kannst du außerdem Kommentare bei Programmwechsel aktivier
 
 Optional kann Noxy einmal täglich einen Wetter-Spruch anzeigen. Die Funktion ist standardmäßig ausgeschaltet. Bei Aktivierung wird die öffentliche IP an ipwho.is gesendet, um eine ungefähre Stadt und Koordinaten zu bestimmen; die Koordinaten werden für die Wetterdaten an Open-Meteo übermittelt. Die Stadtbestimmung kann ungenau sein. Wetterdaten von Open-Meteo, lizenziert unter CC BY 4.0.
 
+Unter **Noxys auf dem Desktop** stellst du ein, ob höchstens ein, zwei oder drei Noxys gleichzeitig laufen dürfen. Klicke zum Starten eines weiteren Noxy erneut auf das Desktop-Symbol. Bereits laufende Exemplare bleiben bestehen, wenn du das Limit verringerst. Jedes Noxy lässt sich im RGB-Farbmenü einzeln einfärben; treffen sie sich auf dem Desktop, tauschen sie einen kurzen Spruch aus.
+
 
 Noxy kann beim Herumlaufen über gemeinsame Kanten direkt angrenzender Monitore wechseln. Am äußeren Rand des Monitorverbunds dreht es um. Die Monitore müssen in den Windows-Anzeigeeinstellungen passend angeordnet sein.
 
