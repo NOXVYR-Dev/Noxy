@@ -89,6 +89,45 @@ public class SettingsWindow : Window
         panel.Children.Add(new TextBlock { Text = "Erkennt nur den Namen des aktiven Programms. Keine Fenstertitel oder Inhalte. Höchstens ein Kommentar alle 3 Minuten.", TextWrapping = TextWrapping.Wrap, Opacity = 0.8, Margin = new Thickness(0, -4, 0, 10) });
         var weatherComments = AddCheck(panel, "Täglicher Wetter-Spruch (ungefähre Stadt per IP)", settings.EnableWeatherComments);
         panel.Children.Add(new TextBlock { Text = "Nur wenn aktiviert und höchstens einmal täglich: Deine öffentliche IP geht an ipwho.is zur ungefähren Stadtbestimmung. Die Koordinaten werden an Open-Meteo für Wetterdaten gesendet. Die Stadt kann ungenau sein. Wetterdaten: Open-Meteo (CC BY 4.0).", TextWrapping = TextWrapping.Wrap, Opacity = 0.8, Margin = new Thickness(0, -4, 0, 10) });
+        panel.Children.Add(new TextBlock { Text = "Noxys auf dem Desktop", Foreground = BubbleAccent, FontSize = 16, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 2, 0, 6) });
+        panel.Children.Add(new TextBlock { Text = "Wie viele Noxys dürfen gleichzeitig laufen? Zusätzliche Noxys startest du durch erneutes Anklicken des Desktop-Symbols. Die Begrenzung gilt für neue Starts.", TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 0, 0, 5) });
+        var maxInstances = new WpfComboBox { Height = 34, Margin = new Thickness(0, 0, 0, 10), Background = BubbleInput, Foreground = BubbleText, BorderBrush = BubbleBorder, BorderThickness = new Thickness(1), Padding = new Thickness(6, 3, 6, 3), Template = CreateComboBoxTemplate(), ItemContainerStyle = movement.ItemContainerStyle };
+        maxInstances.Items.Add("1 Noxy"); maxInstances.Items.Add("2 Noxys"); maxInstances.Items.Add("3 Noxys");
+        maxInstances.SelectedIndex = Math.Clamp(settings.MaxInstances, 1, 3) - 1;
+        panel.Children.Add(maxInstances);
+        panel.Children.Add(new TextBlock { Text = "Farbe für welchen Noxy?", Foreground = BubbleText, Margin = new Thickness(0, 2, 0, 4) });
+        var colorSlot = new WpfComboBox { Height = 34, Margin = new Thickness(0, 0, 0, 8), Background = BubbleInput, Foreground = BubbleText, BorderBrush = BubbleBorder, BorderThickness = new Thickness(1), Padding = new Thickness(6, 3, 6, 3), Template = CreateComboBoxTemplate(), ItemContainerStyle = movement.ItemContainerStyle };
+        colorSlot.Items.Add("Noxy 1"); colorSlot.Items.Add("Noxy 2"); colorSlot.Items.Add("Noxy 3"); colorSlot.SelectedIndex = 0;
+        panel.Children.Add(colorSlot);
+        var colorPreview = new Border { Height = 24, CornerRadius = new CornerRadius(5), BorderBrush = BubbleText, BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 0, 8) };
+        panel.Children.Add(colorPreview);
+        var rgbLabel = new TextBlock { Foreground = BubbleText, Margin = new Thickness(0, 0, 0, 4) };
+        panel.Children.Add(rgbLabel);
+        var red = AddColorSlider(panel, "Rot", BubbleAccent);
+        var green = AddColorSlider(panel, "Grün", BubbleAccent);
+        var blue = AddColorSlider(panel, "Blau", BubbleAccent);
+        void ShowSelectedColor()
+        {
+            if (settings.NoxyColors.Count < 3) settings.NoxyColors = ["#FFFF425C", "#FF35D8C5", "#FFFFB52E"];
+            var value = settings.NoxyColors[Math.Clamp(colorSlot.SelectedIndex, 0, 2)];
+            try
+            {
+                var color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(value);
+                red.Value = color.R; green.Value = color.G; blue.Value = color.B;
+                colorPreview.Background = new SolidColorBrush(color);
+                rgbLabel.Text = $"RGB  {color.R}, {color.G}, {color.B}  ·  #{color.R:X2}{color.G:X2}{color.B:X2}";
+            }
+            catch { }
+        }
+        void UpdateColorPreview()
+        {
+            var color = System.Windows.Media.Color.FromRgb((byte)red.Value, (byte)green.Value, (byte)blue.Value);
+            colorPreview.Background = new SolidColorBrush(color);
+            rgbLabel.Text = $"RGB  {color.R}, {color.G}, {color.B}  ·  #{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+        colorSlot.SelectionChanged += (_, _) => ShowSelectedColor();
+        red.ValueChanged += (_, _) => UpdateColorPreview(); green.ValueChanged += (_, _) => UpdateColorPreview(); blue.ValueChanged += (_, _) => UpdateColorPreview();
+        ShowSelectedColor();
         var autostart = AddCheck(panel, "Beim Windows-Anmelden automatisch starten", WindowsStartup.IsEnabled());
 
         panel.Children.Add(new TextBlock { Text = "Sprüche alle (Sekunden, mindestens 15):", Foreground = BubbleText, Margin = new Thickness(0, 6, 0, 0) });
@@ -107,6 +146,8 @@ public class SettingsWindow : Window
             settings.EnableSensors = sensors.IsChecked == true;
             settings.EnableAppComments = appComments.IsChecked == true;
             settings.EnableWeatherComments = weatherComments.IsChecked == true;
+            settings.MaxInstances = Math.Clamp(maxInstances.SelectedIndex + 1, 1, 3);
+            settings.NoxyColors[Math.Clamp(colorSlot.SelectedIndex, 0, 2)] = $"#FF{(byte)red.Value:X2}{(byte)green.Value:X2}{(byte)blue.Value:X2}";
             if (int.TryParse(interval.Text, out var seconds)) settings.IntervalSeconds = Math.Clamp(seconds, 15, 3600);
             try
             {
@@ -229,6 +270,14 @@ public class SettingsWindow : Window
         };
         panel.Children.Add(check);
         return check;
+    }
+
+    private static System.Windows.Controls.Slider AddColorSlider(System.Windows.Controls.Panel panel, string label, WpfBrush accent)
+    {
+        panel.Children.Add(new TextBlock { Text = label, Foreground = BubbleText, Margin = new Thickness(0, 0, 0, 1) });
+        var slider = new System.Windows.Controls.Slider { Minimum = 0, Maximum = 255, TickFrequency = 1, IsSnapToTickEnabled = true, Height = 24, Margin = new Thickness(0, 0, 0, 4), Foreground = accent };
+        panel.Children.Add(slider);
+        return slider;
     }
 
     private void RefreshUpdateState()
