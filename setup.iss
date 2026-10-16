@@ -33,7 +33,7 @@ Source: "publish\Noxy.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\Noxy"; Filename: "{app}\Noxy.exe"
-Name: "{autodesktop}\Noxy"; Filename: "{app}\Noxy.exe"; Tasks: desktopicon
+Name: "{autodesktop}\Noxy"; Filename: "{app}\Noxy.exe"; IconFilename: "{app}\Noxy.exe"; Tasks: desktopicon
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Noxy"; ValueData: """{app}\Noxy.exe"""; Tasks: autostart; Flags: uninsdeletevalue
