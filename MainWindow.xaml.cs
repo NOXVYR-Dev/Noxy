@@ -3,12 +3,14 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Windows.Interop;
 namespace Noxy;
 public partial class MainWindow : Window {
  readonly DispatcherTimer timer=new(){Interval=TimeSpan.FromSeconds(1)};
  readonly DispatcherTimer movementTimer=new(){Interval=TimeSpan.FromMilliseconds(33)};
  readonly Random random=new();
  readonly UpdateService updates=new();
+ SettingsWindow? settingsWindow;
  double velocity=1.25, phase=0; int motionTicks=0, idleTicks=40; bool dragging=false; readonly PetSettings settings=PetSettings.Load();
  int seconds=0, bubbleTime=0; bool lastFallout=false,lastWow=false;
  readonly string[] phrases={"Dein Desktop sieht aus, als hätte ein Supermutant aufgeräumt.","Ich habe heute nichts Produktives gemacht. Wir haben so viel gemeinsam.","Du klickst ziemlich selbstbewusst für jemanden ohne Plan.","Fallout im Herzen, ButzGatz im Blut. Und Chaos im Arbeitsspeicher.","Dein PC arbeitet. Ich überwache das fachmännisch vom Sofa aus.","Wenn Faulheit eine Grafikkarte wäre, hätte ich 500 FPS.","Wohltaten? Ich verteile höchstens dumme Sprüche.","Das ist kein Bug. Das ist ein Feature mit Alkoholproblem."};
@@ -32,7 +34,7 @@ public partial class MainWindow : Window {
   if(walking){
    if(idleTicks>0)idleTicks--;
    else {
-    var area=SystemParameters.WorkArea;
+    var area=CurrentMonitorWorkArea();
     Left+=velocity*(zippy?2.6:1.0);
     if(Left<=area.Left){Left=area.Left;velocity=Math.Abs(velocity);}
     if(Left+Width>=area.Right){Left=Math.Max(area.Left,area.Right-Width);velocity=-Math.Abs(velocity);}
@@ -45,11 +47,21 @@ public partial class MainWindow : Window {
   RightFoot.RenderTransform=new TranslateTransform(0,-step);
   Body.RenderTransform=new TranslateTransform(0,moving?Math.Abs(Math.Sin(phase*2.5))*-3:Math.Sin(phase)*1.5);
  }
+ Rect CurrentMonitorWorkArea(){
+  var screen=System.Windows.Forms.Screen.FromHandle(new WindowInteropHelper(this).Handle).WorkingArea;
+  var transform=PresentationSource.FromVisual(this)?.CompositionTarget?.TransformFromDevice;
+  if(transform is System.Windows.Media.Matrix matrix){
+   var topLeft=matrix.Transform(new System.Windows.Point(screen.Left,screen.Top));
+   var bottomRight=matrix.Transform(new System.Windows.Point(screen.Right,screen.Bottom));
+   return new Rect(topLeft,bottomRight);
+  }
+  return new Rect(screen.Left,screen.Top,screen.Width,screen.Height);
+ }
  void Say(string value){BubbleText.Text=value;Bubble.Visibility=Visibility.Visible;bubbleTime=11;}
  void DragWindow(object sender,MouseButtonEventArgs e){if(e.ChangedButton!=MouseButton.Left)return;if(e.ClickCount==2){Say(phrases[random.Next(phrases.Length)]);return;}try{dragging=true;DragMove();}catch(InvalidOperationException){}finally{dragging=false;}}
  void SayNow(object sender,RoutedEventArgs e)=>Say(phrases[random.Next(phrases.Length)]);
  void OpenChat(object sender,RoutedEventArgs e)=>new ChatWindow(settings).Show();
- void OpenSettings(object sender,RoutedEventArgs e)=>new SettingsWindow(settings,updates).ShowDialog();
+ void OpenSettings(object sender,RoutedEventArgs e){if(settingsWindow is { IsVisible:true }){settingsWindow.Activate();return;}settingsWindow=new SettingsWindow(settings,updates){Owner=this};settingsWindow.Closed+=(_,_)=>settingsWindow=null;settingsWindow.Show();settingsWindow.Activate();}
  void ExitApp(object sender,RoutedEventArgs e)=>Close();
  void OnClosing(object? sender,System.ComponentModel.CancelEventArgs e){settings.Left=Left;settings.Top=Top;settings.Save();}
 }
