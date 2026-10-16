@@ -5,6 +5,24 @@ internal static class ProcessInstanceManager
     private static Mutex? ownedMutex;
     public static int Slot { get; private set; }
 
+    public static IReadOnlyList<int> GetFreeSlots(int maxInstances)
+    {
+        var freeSlots = new List<int>();
+        for (var i = 1; i <= Math.Clamp(maxInstances, 1, 3); i++)
+        {
+            if (i == Slot) continue;
+            using var candidate = new Mutex(false, $"Local\\Noxy.Instance.{i}");
+            var acquired = false;
+            try
+            {
+                acquired = candidate.WaitOne(0);
+            }
+            catch (AbandonedMutexException) { acquired = true; }
+            if (acquired) { candidate.ReleaseMutex(); freeSlots.Add(i); }
+        }
+        return freeSlots;
+    }
+
     public static bool TryAcquire(int maxInstances, out int slot)
     {
         slot = 0;
