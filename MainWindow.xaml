@@ -13,7 +13,6 @@
 <Path Data="M 75,124 Q 92,141 111,122" Stroke="#FFF2BAC0" StrokeThickness="3" Fill="Transparent" StrokeStartLineCap="Round"/>
 <Ellipse x:Name="LeftFoot" Canvas.Left="44" Canvas.Top="153" Width="36" Height="17" Fill="#FF15131A" Stroke="#FFB83243" StrokeThickness="2"/>
 <Ellipse x:Name="RightFoot" Canvas.Left="106" Canvas.Top="153" Width="36" Height="17" Fill="#FF15131A" Stroke="#FFB83243" StrokeThickness="2"/>
-<TextBlock x:Name="PetLabel" Canvas.Left="58" Canvas.Top="29" Text="NOXY" FontSize="12" FontWeight="Black" Foreground="#FFFF677A"/>
 </Canvas>
 </Grid></Window>
 
