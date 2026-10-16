@@ -1,5 +1,10 @@
 # Änderungsprotokoll
 
+## [0.3.5] - 2026-10-16
+
+- Wenn Noxy beim Festhalten schnell hin und her geschüttelt wird, wird er für kurze Zeit sichtbar wütend und kommentiert das frech.
+- Ein erkanntes Schütteln löst beim Loslassen keinen versehentlichen Flummi-Wurf aus; kleine Mausbewegungen reichen dafür nicht.
+
 ## [0.3.4] - 2026-10-16
 
 - Noxy teilt etwa alle vier bis sechs Minuten CPU-, GPU- und RAM-Auslastung mit, sofern PC-Statusmeldungen aktiviert sind.
@@ -82,3 +87,4 @@
 - Noxy weist mit seiner Sprechblase auf verfügbare Updates hin.
 - Der Update-Knopf wird bei einem verfügbaren Update grün hervorgehoben.
 - Die Versionshinweise des neuesten GitHub-Releases werden in den Einstellungen angezeigt.
+

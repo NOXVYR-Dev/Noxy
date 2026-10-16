@@ -16,11 +16,12 @@ public partial class MainWindow : Window {
  string? activeProcess,pendingProcess; int pendingProcessSeconds=0; DateTime lastAppComment=DateTime.MinValue;
  readonly PetMotion motion=new();
  readonly DragVelocity dragVelocity=new();
+ readonly PetShakeDetector shakeDetector=new();
  readonly Stopwatch animationClock=Stopwatch.StartNew();
  readonly TranslateTransform bodyOffset=new(), leftStep=new(), rightStep=new(), gazeLeft=new(), gazeRight=new();
  readonly RotateTransform bodyTilt=new();
  readonly ScaleTransform bodySquash=new(1,1);
- double lastFrame, phase; bool dragging=false, quiet;
+ double lastFrame, phase, angerRemaining; bool dragging=false, quiet,shakeTriggered,angryFace;
  string appliedColor=""; int lastEncounterSlot=0, encounterReplySlot=0; DateTime lastEncounter=DateTime.MinValue, encounterReplyAt=DateTime.MinValue;
  int seconds=0, bubbleTime=0,nextSensorCommentSeconds=300; bool lastFallout=false,lastWow=false,updateNoticeShown=false;
  int? cpuPercent,gpuPercent;
@@ -31,7 +32,7 @@ public partial class MainWindow : Window {
   "Das Fenster da hinten sieht wichtig aus. Ich ignoriere es für dich.","Du arbeitest wirklich hart daran, beschäftigt auszusehen.","Ich wollte einen Kaffee holen. Dann fiel mir ein, dass ich keine Hände habe.","Heute schon etwas erledigt? Ich auch nicht. Teamwork!", "Ich bewerte deine Fensterordnung mit: mutig.","Keine Sorge, ich passe auf. Worauf, weiß ich noch nicht.","Du brauchst keine Pause. Aber ich könnte eine gebrauchen.","Wenn du mich suchst: Ich bin genau da, wo du mich gestern vergessen hast.",
   "Ich habe heute schon drei Pixel bewegt. Bitte keine Überanstrengung.","Dein Desktop hat mehr offene Fenster als ich offene Fragen.","Ich bin nicht im Weg. Ich bin eine dekorative Herausforderung.","Gute Nachrichten: Ich habe nichts kaputt gemacht. Bis jetzt.","Das war bestimmt der Plan. Ich unterstütze ihn vorsichtshalber.","Du siehst konzentriert aus. Ich mache lieber keinen Lärm. Außer diesem Spruch.","Ich bin bereit für Abenteuer. Also für einen Spaziergang bis zum Bildschirmrand.","Bei dem Tempo wird sogar mein Bildschirmschoner nervös."
  };
- public MainWindow(PetSettings petSettings,int instanceSlot){settings=petSettings;slot=instanceSlot;nextSensorCommentSeconds=random.Next(240,361);InitializeComponent();var pos=PetSettings.LoadPosition(slot);Left=pos?.Left??(settings.Left+((slot-1)*310));Top=pos?.Top??settings.Top;if(!double.IsFinite(Left))Left=100;if(!double.IsFinite(Top))Top=100;Title=$"Noxy #{slot}";var transforms=new TransformGroup();transforms.Children.Add(bodySquash);transforms.Children.Add(bodyTilt);transforms.Children.Add(bodyOffset);PetBody.RenderTransform=transforms;LeftFoot.RenderTransform=leftStep;RightFoot.RenderTransform=rightStep;LeftEye.RenderTransform=gazeLeft;RightEye.RenderTransform=gazeRight;LocationChanged+=(_,_)=>{if(dragging)dragVelocity.Add(new System.Windows.Point(Left,Top),animationClock.Elapsed.TotalSeconds);};Closed+=(_,_)=>{timer.Stop();movementTimer.Stop();updates.Changed-=OnUpdateChanged;};ApplyNoxyColor();updates.Changed+=OnUpdateChanged;timer.Tick+=Tick;timer.Start();movementTimer.Tick+=Animate;movementTimer.Start();}
+ public MainWindow(PetSettings petSettings,int instanceSlot){settings=petSettings;slot=instanceSlot;nextSensorCommentSeconds=random.Next(240,361);InitializeComponent();var pos=PetSettings.LoadPosition(slot);Left=pos?.Left??(settings.Left+((slot-1)*310));Top=pos?.Top??settings.Top;if(!double.IsFinite(Left))Left=100;if(!double.IsFinite(Top))Top=100;Title=$"Noxy #{slot}";var transforms=new TransformGroup();transforms.Children.Add(bodySquash);transforms.Children.Add(bodyTilt);transforms.Children.Add(bodyOffset);PetBody.RenderTransform=transforms;LeftFoot.RenderTransform=leftStep;RightFoot.RenderTransform=rightStep;LeftEye.RenderTransform=gazeLeft;RightEye.RenderTransform=gazeRight;LocationChanged+=(_,_)=>{if(dragging){var now=animationClock.Elapsed.TotalSeconds;var position=new System.Windows.Point(Left,Top);dragVelocity.Add(position,now);if(!shakeTriggered&&shakeDetector.Add(position,now))BecomeAngry();}};Closed+=(_,_)=>{timer.Stop();movementTimer.Stop();updates.Changed-=OnUpdateChanged;};ApplyNoxyColor();updates.Changed+=OnUpdateChanged;timer.Tick+=Tick;timer.Start();movementTimer.Tick+=Animate;movementTimer.Start();}
  void OnUpdateChanged(){if(updates.UpdateAvailable&&!updateNoticeShown){updateNoticeShown=true;Say($"Noxy {updates.Status} Rechtsklick auf mich und öffne Einstellungen zum Aktualisieren.");}else if(!updates.UpdateAvailable){updateNoticeShown=false;}}
  void OnLoaded(object sender,RoutedEventArgs e){var area=CurrentMonitorWorkArea();Left=Math.Clamp(Left,area.Left,area.Right);Top=Math.Clamp(Top,area.Top,area.Bottom);RefreshQuiet();lastFrame=animationClock.Elapsed.TotalSeconds;Say("Noxy ist wach. Wo sind meine verdammten Wohltaten?");}
  void Tick(object? sender,EventArgs e){seconds++;if(seconds%5==0){var latest=PetSettings.Load();if(latest.NoxyColors is {Count:>=3})settings.NoxyColors=latest.NoxyColors;settings.MaxInstances=latest.MaxInstances;if(slot>latest.MaxInstances){Close();return;}}ApplyNoxyColor();if(seconds%2==0)CheckForEncounter();ReplyToEncounter();if(bubbleTime>0&&--bubbleTime==0)Bubble.Visibility=Visibility.Collapsed;
@@ -101,16 +102,19 @@ public partial class MainWindow : Window {
   bool blocked=quiet||dragging||ContextMenu?.IsOpen==true||settingsWindow?.IsVisible==true;
   if(!dragging){var next=motion.Advance(new System.Windows.Point(Left,Top),CurrentMonitorWorkArea(),dt,settings.MovementMode,blocked);Left=next.X;Top=next.Y;}
   bool sleeping=settings.MovementMode=="sleep";
+  angerRemaining=Math.Max(0,angerRemaining-dt);bool angry=angerRemaining>0;
+  LeftAngryBrow.Visibility=RightAngryBrow.Visibility=angry?Visibility.Visible:Visibility.Collapsed;
+  if(angryFace!=angry){Mouth.Data=Geometry.Parse(angry?"M 75,137 Q 92,119 111,137":"M 75,124 Q 92,141 111,122");angryFace=angry;}
   phase+=dt*(motion.Moving?12:motion.Flying?16:2.5);
   double stride=motion.Moving?Math.Sin(phase):0;
   leftStep.X=stride*7;rightStep.X=-stride*7;
   leftStep.Y=-Math.Max(0,stride)*9;rightStep.Y=-Math.Max(0,-stride)*9;
   bodyOffset.Y=motion.Moving?-Math.Abs(Math.Cos(phase))*4:Math.Sin(phase)*(sleeping?.6:1.8);
-  bodyTilt.Angle=motion.Flying?Math.Clamp(motion.VelocityX/35,-24,24):dragging?Math.Sin(phase*2)*5:stride*2;
+  bodyTilt.Angle=motion.Flying?Math.Clamp(motion.VelocityX/35,-24,24):angry?Math.Sin(phase*14)*9:dragging?Math.Sin(phase*2)*5:stride*2;
   bodySquash.ScaleX=1+motion.Impact*.12;
   bodySquash.ScaleY=1-motion.Impact*.1;
   double blink=animationClock.Elapsed.TotalSeconds%5.3;
-  LeftEye.Height=RightEye.Height=sleeping?3:blink<.16?3:17;
+  LeftEye.Height=RightEye.Height=sleeping?3:blink<.16?3:angry?13:17;
   gazeLeft.X=gazeRight.X=sleeping?0:motion.Direction*3;
   SleepLabel.Visibility=sleeping?Visibility.Visible:Visibility.Collapsed;
   if(sleeping||quiet){Bubble.Visibility=Visibility.Collapsed;bubbleTime=0;}
@@ -131,10 +135,11 @@ public partial class MainWindow : Window {
   return new Rect(minLeft,minTop,maxLeft-minLeft,maxTop-minTop);
  }
  void Say(string value){if(settings.MovementMode=="sleep"||quiet)return;BubbleText.Text=value;Bubble.Visibility=Visibility.Visible;bubbleTime=11;}
+ void BecomeAngry(){if(quiet||settings.MovementMode=="sleep")return;shakeTriggered=true;angerRemaining=3.5;Say("Lass das, du Schüttelheini!");}
  void DragWindow(object sender,MouseButtonEventArgs e){
   if(e.ChangedButton!=MouseButton.Left)return;
   if(e.ClickCount==2){motion.Stop();OpenSettings(sender,e);return;}
-  motion.Stop();dragging=true;dragVelocity.Begin(new System.Windows.Point(Left,Top),animationClock.Elapsed.TotalSeconds);
+  motion.Stop();dragging=true;shakeTriggered=false;var now=animationClock.Elapsed.TotalSeconds;var position=new System.Windows.Point(Left,Top);dragVelocity.Begin(position,now);shakeDetector.Begin(position,now);
   bool released=false;
   try{DragMove();released=Mouse.LeftButton==MouseButtonState.Released;}
   catch(InvalidOperationException){}
@@ -143,7 +148,7 @@ public partial class MainWindow : Window {
  internal void EndDrag(bool released){
   dragging=false;RefreshQuiet();
   var area=CurrentMonitorWorkArea();Left=Math.Clamp(Left,area.Left,area.Right);Top=Math.Clamp(Top,area.Top,area.Bottom);
-  if(released&&!quiet&&settings.MovementMode!="sleep")motion.Throw(dragVelocity.Release(animationClock.Elapsed.TotalSeconds));
+  if(released&&!quiet&&settings.MovementMode!="sleep"&&!shakeTriggered)motion.Throw(dragVelocity.Release(animationClock.Elapsed.TotalSeconds));
   lastFrame=animationClock.Elapsed.TotalSeconds;
  }
  void SayNow(object sender,RoutedEventArgs e)=>Say(phrases[random.Next(phrases.Length)]);
@@ -153,3 +158,4 @@ public partial class MainWindow : Window {
  void ExitApp(object sender,RoutedEventArgs e)=>Close();
  void OnClosing(object? sender,System.ComponentModel.CancelEventArgs e){settings.SavePosition(slot,Left,Top);}
 }
+

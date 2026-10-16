@@ -11,10 +11,13 @@
 <Ellipse Canvas.Left="41" Canvas.Top="58" Width="101" Height="89" Fill="#FF11131B"/>
 <Ellipse x:Name="LeftEye" Canvas.Left="53" Canvas.Top="90" Width="28" Height="17" Fill="#FFFF425C"/>
 <Ellipse x:Name="RightEye" Canvas.Left="105" Canvas.Top="90" Width="28" Height="17" Fill="#FFFF425C"/>
-<Path Data="M 75,124 Q 92,141 111,122" Stroke="#FFF2BAC0" StrokeThickness="3" Fill="Transparent" StrokeStartLineCap="Round"/>
+<Path x:Name="LeftAngryBrow" Data="M 52,84 L 80,92" Stroke="#FFF2BAC0" StrokeThickness="5" StrokeStartLineCap="Round" Visibility="Collapsed"/>
+<Path x:Name="RightAngryBrow" Data="M 105,92 L 134,84" Stroke="#FFF2BAC0" StrokeThickness="5" StrokeStartLineCap="Round" Visibility="Collapsed"/>
+<Path x:Name="Mouth" Data="M 75,124 Q 92,141 111,122" Stroke="#FFF2BAC0" StrokeThickness="3" Fill="Transparent" StrokeStartLineCap="Round"/>
 </Canvas>
 <Ellipse x:Name="LeftFoot" Canvas.Left="44" Canvas.Top="153" Width="36" Height="17" Fill="#FF15131A" Stroke="#FFB83243" StrokeThickness="2"/>
 <Ellipse x:Name="RightFoot" Canvas.Left="106" Canvas.Top="153" Width="36" Height="17" Fill="#FF15131A" Stroke="#FFB83243" StrokeThickness="2"/>
 <TextBlock x:Name="SleepLabel" Canvas.Left="140" Canvas.Top="20" Text="z Z" Foreground="#FFF2BAC0" FontSize="22" FontWeight="Bold" Visibility="Collapsed" IsHitTestVisible="False"/>
 </Canvas>
 </Grid></Window>
+

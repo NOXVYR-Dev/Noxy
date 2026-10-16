@@ -143,6 +143,13 @@ static class Program
             drag.Begin(new Point(0, 0), 2); drag.Add(new Point(1, 1), 2.08);
             Check(!new PetMotion().Throw(drag.Release(2.09)), "Slow sample sequence remains a placement");
 
+            var shake = new PetShakeDetector(); shake.Begin(new Point(100, 100), 0);
+            Check(!shake.Add(new Point(140, 100), .08) && !shake.Add(new Point(110, 100), .16) && shake.Add(new Point(140, 100), .24),
+                "Two quick direction reversals register a deliberate shake");
+            shake.Begin(new Point(0, 0), 1);
+            Check(!shake.Add(new Point(25, 0), 1.05) && !shake.Add(new Point(15, 0), 1.1) && !shake.Add(new Point(25, 0), 1.15),
+                "Small cursor jitter does not register as a shake");
+
             // Run the actual compiled WPF window and its dispatcher, without touching user settings.
             var app = new System.Windows.Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
             var settings = new PetSettings { QuietWhenObs = false, QuietWhenFullscreen = false, EnableSpeech = false, EnableWeatherComments = false };
@@ -164,6 +171,21 @@ static class Program
             typeof(MainWindow).GetMethod("EndDrag", Private)!.Invoke(window, new object[] { true });
             Check(Field<PetMotion>(window, "motion").Flying && Field<PetMotion>(window, "motion").VelocityX > 260,
                 "Actual window LocationChanged samples feed the release-to-flight path");
+            Field<PetMotion>(window, "motion").Stop();
+            var shakeDetector = Field<PetShakeDetector>(window, "shakeDetector");
+            var shakeStart = clock.Elapsed.TotalSeconds; var shakePosition = new Point(window.Left, window.Top);
+            shakeDetector.Begin(shakePosition, shakeStart); liveDrag.Begin(shakePosition, shakeStart);
+            typeof(MainWindow).GetField("shakeTriggered", Private)!.SetValue(window, false);
+            typeof(MainWindow).GetField("dragging", Private)!.SetValue(window, true);
+            System.Threading.Thread.Sleep(40); window.Left += 40;
+            System.Threading.Thread.Sleep(40); window.Left -= 30;
+            System.Threading.Thread.Sleep(40); window.Left += 30;
+            typeof(MainWindow).GetMethod("EndDrag", Private)!.Invoke(window, new object[] { true });
+            Check(!Field<PetMotion>(window, "motion").Flying && Field<double>(window, "angerRemaining") > 0,
+                "A shaken pet gets angry instead of being flung on release");
+            Frame(window);
+            Check(((System.Windows.Shapes.Path)window.FindName("LeftAngryBrow")).Visibility == Visibility.Visible && ((System.Windows.Shapes.Path)window.FindName("RightAngryBrow")).Visibility == Visibility.Visible,
+                "The real WPF pet shows its angry eyebrows after a shake");
             Field<PetMotion>(window, "motion").Stop();
             for (int i = 0; i < 20; i++) Frame(window);
             var body = (Canvas)window.FindName("PetBody");
@@ -212,3 +234,4 @@ static class Program
         }
     }
 }
+
