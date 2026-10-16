@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Markup;
 using WpfButton = System.Windows.Controls.Button;
 using WpfCheckBox = System.Windows.Controls.CheckBox;
 using WpfTextBox = System.Windows.Controls.TextBox;
@@ -64,11 +65,16 @@ public class SettingsWindow : Window
         Grid.SetRow(scroll, 1);
         layout.Children.Add(scroll);
         panel.Children.Add(new TextBlock { Text = "Verhalten", Foreground = BubbleAccent, FontSize = 16, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 6) });
-        var movement = new WpfComboBox { Height = 34, Margin = new Thickness(0, 0, 0, 12), Background = BubbleSurface, Foreground = BubbleText, BorderBrush = BubbleBorder, Padding = new Thickness(6, 3, 6, 3) };
-        movement.ItemContainerStyle = new Style(typeof(ComboBoxItem));
-        movement.ItemContainerStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BackgroundProperty, BubbleSurface));
-        movement.ItemContainerStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty, BubbleText));
-        movement.ItemContainerStyle.Setters.Add(new Setter(System.Windows.Controls.Control.PaddingProperty, new Thickness(8, 5, 8, 5)));
+        var movement = new WpfComboBox { Height = 34, Margin = new Thickness(0, 0, 0, 12), Background = BubbleInput, Foreground = BubbleText, BorderBrush = BubbleBorder, BorderThickness = new Thickness(1), Padding = new Thickness(6, 3, 6, 3), Template = CreateComboBoxTemplate() };
+        var movementItemStyle = new Style(typeof(ComboBoxItem));
+        movementItemStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BackgroundProperty, BubbleSurface));
+        movementItemStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty, BubbleText));
+        movementItemStyle.Setters.Add(new Setter(System.Windows.Controls.Control.PaddingProperty, new Thickness(8, 5, 8, 5)));
+        var movementHover = new Trigger { Property = ComboBoxItem.IsHighlightedProperty, Value = true };
+        movementHover.Setters.Add(new Setter(System.Windows.Controls.Control.BackgroundProperty, BubbleBorder));
+        movementHover.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty, System.Windows.Media.Brushes.White));
+        movementItemStyle.Triggers.Add(movementHover);
+        movement.ItemContainerStyle = movementItemStyle;
         movement.Items.Add("Herumlaufen");
         movement.Items.Add("Zappelig");
         movement.Items.Add("Statisch");
@@ -81,6 +87,8 @@ public class SettingsWindow : Window
         var sensors = AddCheck(panel, "RAM-Warnungen aktiv", settings.EnableSensors);
         var appComments = AddCheck(panel, "Kommentare bei Programmwechsel", settings.EnableAppComments);
         panel.Children.Add(new TextBlock { Text = "Erkennt nur den Namen des aktiven Programms. Keine Fenstertitel oder Inhalte. Höchstens ein Kommentar alle 3 Minuten.", TextWrapping = TextWrapping.Wrap, Opacity = 0.8, Margin = new Thickness(0, -4, 0, 10) });
+        var weatherComments = AddCheck(panel, "Täglicher Wetter-Spruch (ungefährer Standort über IP)", settings.EnableWeatherComments);
+        panel.Children.Add(new TextBlock { Text = "Noxy ermittelt Stadt und Wetter einmal am Tag über das Internet. Der Standort ist IP-basiert und kann ungenau sein. Wetterdaten: Open-Meteo (CC BY 4.0).", TextWrapping = TextWrapping.Wrap, Opacity = 0.8, Margin = new Thickness(0, -4, 0, 10) });
         var autostart = AddCheck(panel, "Beim Windows-Anmelden automatisch starten", WindowsStartup.IsEnabled());
 
         panel.Children.Add(new TextBlock { Text = "Sprüche alle (Sekunden, mindestens 15):", Foreground = BubbleText, Margin = new Thickness(0, 6, 0, 0) });
@@ -98,6 +106,7 @@ public class SettingsWindow : Window
             settings.QuietWhenFullscreen = full.IsChecked == true;
             settings.EnableSensors = sensors.IsChecked == true;
             settings.EnableAppComments = appComments.IsChecked == true;
+            settings.EnableWeatherComments = weatherComments.IsChecked == true;
             if (int.TryParse(interval.Text, out var seconds)) settings.IntervalSeconds = Math.Clamp(seconds, 15, 3600);
             try
             {
@@ -156,6 +165,57 @@ public class SettingsWindow : Window
         button.Foreground = BubbleText;
         button.BorderBrush = BubbleBorder;
         button.BorderThickness = new Thickness(1);
+        var template = new ControlTemplate(typeof(WpfButton));
+        var border = new FrameworkElementFactory(typeof(Border));
+        border.Name = "ButtonBorder";
+        border.SetBinding(Border.BackgroundProperty, new System.Windows.Data.Binding("Background") { RelativeSource = System.Windows.Data.RelativeSource.TemplatedParent });
+        border.SetBinding(Border.BorderBrushProperty, new System.Windows.Data.Binding("BorderBrush") { RelativeSource = System.Windows.Data.RelativeSource.TemplatedParent });
+        border.SetBinding(Border.BorderThicknessProperty, new System.Windows.Data.Binding("BorderThickness") { RelativeSource = System.Windows.Data.RelativeSource.TemplatedParent });
+        border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
+        var content = new FrameworkElementFactory(typeof(ContentPresenter));
+        content.SetValue(ContentPresenter.HorizontalAlignmentProperty, System.Windows.HorizontalAlignment.Center);
+        content.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+        content.SetValue(ContentPresenter.RecognizesAccessKeyProperty, true);
+        border.AppendChild(content);
+        template.VisualTree = border;
+        var disabled = new Trigger { Property = System.Windows.Controls.Control.IsEnabledProperty, Value = false };
+        disabled.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush(System.Windows.Media.Color.FromRgb(48, 43, 53)), "ButtonBorder"));
+        disabled.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty, new SolidColorBrush(System.Windows.Media.Color.FromRgb(190, 180, 190))));
+        template.Triggers.Add(disabled);
+        var hover = new Trigger { Property = System.Windows.Controls.Control.IsMouseOverProperty, Value = true };
+        hover.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush(System.Windows.Media.Color.FromRgb(57, 48, 61)), "ButtonBorder"));
+        template.Triggers.Add(hover);
+        button.Template = template;
+    }
+
+    private static ControlTemplate CreateComboBoxTemplate()
+    {
+        const string xaml = @"
+<ControlTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
+                 xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml""
+                 TargetType=""{x:Type ComboBox}"">
+  <Grid>
+    <Border x:Name=""ComboBorder"" Background=""{TemplateBinding Background}""
+            BorderBrush=""{TemplateBinding BorderBrush}"" BorderThickness=""{TemplateBinding BorderThickness}"" CornerRadius=""5""></Border>
+    <DockPanel LastChildFill=""True"" Margin=""1""><ToggleButton x:Name=""DropDownToggle"" DockPanel.Dock=""Right"" Width=""30"" Focusable=""False""
+        Background=""Transparent"" Foreground=""#FFF6E9E9"" BorderThickness=""0"" Content=""⌄""
+        IsChecked=""{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}""/>
+      <ContentPresenter Margin=""7,0,4,0"" VerticalAlignment=""Center"" HorizontalAlignment=""Left""
+        TextElement.Foreground=""{TemplateBinding Foreground}"" Content=""{TemplateBinding SelectionBoxItem}""
+        ContentTemplate=""{TemplateBinding SelectionBoxItemTemplate}"" ContentStringFormat=""{TemplateBinding SelectionBoxItemStringFormat}""/>
+    </DockPanel>
+    <Popup x:Name=""Popup"" Placement=""Bottom"" PlacementTarget=""{Binding RelativeSource={RelativeSource TemplatedParent}}""
+           AllowsTransparency=""True"" Focusable=""False"" IsOpen=""{TemplateBinding IsDropDownOpen}"">
+      <Border Background=""#FF24212D"" BorderBrush=""#FFB83243"" BorderThickness=""1"" CornerRadius=""5"">
+        <ScrollViewer CanContentScroll=""True"" MaxHeight=""220""><ItemsPresenter/></ScrollViewer>
+      </Border>
+    </Popup>
+  </Grid>
+  <ControlTemplate.Triggers>
+    <Trigger Property=""IsDropDownOpen"" Value=""True""><Setter TargetName=""ComboBorder"" Property=""BorderBrush"" Value=""#FFFF677A""/></Trigger>
+  </ControlTemplate.Triggers>
+</ControlTemplate>";
+        return (ControlTemplate)XamlReader.Parse(xaml);
     }
 
     private static WpfCheckBox AddCheck(System.Windows.Controls.Panel panel, string label, bool enabled)
