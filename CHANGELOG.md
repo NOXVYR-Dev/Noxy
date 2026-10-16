@@ -1,5 +1,9 @@
 # Änderungsprotokoll
 
+## [0.3.3] - 2026-10-16
+
+- Bildschirmgrenzen werden über WPFs DPI-Umrechnung aus den tatsächlichen Arbeitsbereich-Ecken des Monitors berechnet. Noxy springt beim Loslassen in einer Bildschirmecke nicht mehr durch vermischte Pixel- und DIP-Maße weg.
+
 ## [0.3.2] - 2026-10-16
 
 - Bewegung und Flummi-Flug werden mit etwa 60 statt 30 Bildern pro Sekunde aktualisiert.

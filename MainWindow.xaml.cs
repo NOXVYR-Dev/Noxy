@@ -108,15 +108,18 @@ public partial class MainWindow : Window {
  }
  Rect CurrentMonitorWorkArea(){
   var screen=System.Windows.Forms.Screen.FromHandle(new WindowInteropHelper(this).Handle).WorkingArea;
-  var dpi=VisualTreeHelper.GetDpi(this);
-  var windowTopLeft=PointToScreen(new System.Windows.Point(0,0));
-  var widthPixels=ActualWidth*dpi.DpiScaleX;
-  var heightPixels=ActualHeight*dpi.DpiScaleY;
-  var minLeft=Left+(screen.Left-windowTopLeft.X)/dpi.DpiScaleX;
-  var maxLeft=Left+(Math.Max(screen.Left,screen.Right-widthPixels)-windowTopLeft.X)/dpi.DpiScaleX;
-  var minTop=Top+(screen.Top-windowTopLeft.Y)/dpi.DpiScaleY;
-  var maxTop=Top+(Math.Max(screen.Top,screen.Bottom-heightPixels)-windowTopLeft.Y)/dpi.DpiScaleY;
-  return new Rect(minLeft,minTop,Math.Max(0,maxLeft-minLeft),Math.Max(0,maxTop-minTop));
+  // Screen.WorkingArea uses screen pixels while Window.Left/Top and ActualWidth/Height
+  // use WPF device-independent units. Let WPF convert both monitor corners so mixed
+  // DPI setups and negative monitor coordinates do not introduce a second scale error.
+  var topLeft=PointFromScreen(new System.Windows.Point(screen.Left,screen.Top));
+  var bottomRight=PointFromScreen(new System.Windows.Point(screen.Right,screen.Bottom));
+  var minLeft=Left+topLeft.X;
+  var minTop=Top+topLeft.Y;
+  var maxLeft=Math.Max(minLeft,Left+bottomRight.X-ActualWidth);
+  var maxTop=Math.Max(minTop,Top+bottomRight.Y-ActualHeight);
+  if(!double.IsFinite(minLeft)||!double.IsFinite(minTop)||!double.IsFinite(maxLeft)||!double.IsFinite(maxTop))
+   return new Rect(Left,Top,0,0);
+  return new Rect(minLeft,minTop,maxLeft-minLeft,maxTop-minTop);
  }
  void Say(string value){if(settings.MovementMode=="sleep"||quiet)return;BubbleText.Text=value;Bubble.Visibility=Visibility.Visible;bubbleTime=11;}
  void DragWindow(object sender,MouseButtonEventArgs e){
