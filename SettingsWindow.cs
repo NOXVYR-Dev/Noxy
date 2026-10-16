@@ -13,7 +13,7 @@ public class SettingsWindow : Window
 {
     private readonly UpdateService updates;
     private readonly TextBlock updateStatus = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 8) };
-    private readonly WpfButton installUpdate = new() { Content = "Jetzt aktualisieren", Height = 34, IsEnabled = false };
+    private readonly WpfButton installUpdate = new() { Content = "Jetzt aktualisieren", Height = 34, IsEnabled = false, Padding = new Thickness(12, 0, 12, 0) };
     private readonly WpfButton checkUpdates = new() { Content = "Jetzt prüfen", Height = 34, Margin = new Thickness(8, 0, 0, 0) };
 
     public SettingsWindow(PetSettings settings, UpdateService updateService)
@@ -74,6 +74,21 @@ public class SettingsWindow : Window
         panel.Children.Add(new Separator { Margin = new Thickness(0, 18, 0, 12) });
         panel.Children.Add(new TextBlock { Text = "Updates von GitHub", FontSize = 16, FontWeight = FontWeights.SemiBold });
         panel.Children.Add(updateStatus);
+        panel.Children.Add(new TextBlock { Text = "Änderungen der neuesten Version", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 4, 0, 6) });
+        var changelog = new WpfTextBox
+        {
+            IsReadOnly = true,
+            TextWrapping = TextWrapping.Wrap,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            MinHeight = 74,
+            MaxHeight = 130,
+            Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(32, 30, 36)),
+            Foreground = System.Windows.Media.Brushes.White,
+            BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(78, 70, 82)),
+            Padding = new Thickness(8),
+        };
+        panel.Children.Add(changelog);
         var updateButtons = new StackPanel { Orientation = WpfOrientation.Horizontal };
         updateButtons.Children.Add(installUpdate);
         updateButtons.Children.Add(checkUpdates);
@@ -82,8 +97,15 @@ public class SettingsWindow : Window
         updates.Changed += RefreshUpdateState;
         checkUpdates.Click += async (_, _) => await updates.CheckAsync();
         installUpdate.Click += async (_, _) => await updates.InstallUpdateAsync();
-        Closed += (_, _) => updates.Changed -= RefreshUpdateState;
+        void RefreshChangelog() => changelog.Text = updates.ChangeLog;
+        updates.Changed += RefreshChangelog;
+        Closed += (_, _) =>
+        {
+            updates.Changed -= RefreshUpdateState;
+            updates.Changed -= RefreshChangelog;
+        };
         RefreshUpdateState();
+        RefreshChangelog();
     }
 
     private static WpfCheckBox AddCheck(System.Windows.Controls.Panel panel, string label, bool enabled)
@@ -103,6 +125,8 @@ public class SettingsWindow : Window
     {
         updateStatus.Text = updates.Status;
         installUpdate.IsEnabled = updates.UpdateAvailable && !updates.IsBusy;
+        installUpdate.Background = updates.UpdateAvailable ? System.Windows.Media.Brushes.ForestGreen : null;
+        installUpdate.Foreground = updates.UpdateAvailable ? System.Windows.Media.Brushes.White : System.Windows.SystemColors.ControlTextBrush;
         checkUpdates.IsEnabled = !updates.IsBusy;
     }
 }
