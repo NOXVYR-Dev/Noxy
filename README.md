@@ -20,5 +20,7 @@ GitHub Actions baut daraufhin die eigenständige Windows-App und den Windows-Set
 
 Mit installiertem .NET 8 SDK `BUILD-WINDOWS.bat` starten. Die App erscheint unter `publish/Noxy.exe`.
 
+Noxy kann beim Herumlaufen über gemeinsame Kanten direkt angrenzender Monitore wechseln. Am äußeren Rand des Monitorverbunds dreht es um. Die Monitore müssen in den Windows-Anzeigeeinstellungen passend angeordnet sein.
+
 Einstellungen liegen lokal unter `%LOCALAPPDATA%\Noxy`. Vorhandene Einstellungen der Noxvyr-Alpha werden beim ersten Start übernommen.
 
