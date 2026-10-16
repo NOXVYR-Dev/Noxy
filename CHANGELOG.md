@@ -1,5 +1,12 @@
 # Änderungsprotokoll
 
+## [0.2.8] - 2026-10-16
+
+- Noxy verhindert Mehrfachstarts oberhalb des eingestellten Limits; wahlweise sind ein, zwei oder drei gleichzeitig gestartete Noxys möglich.
+- Individuelle RGB-Farben für jedes Noxy und eigene Positionen pro Instanz.
+- Treffen sich Noxys auf dem Desktop, tauschen sie einen kurzen Spruch aus.
+- Neues Noxy-Symbol für Programm und Desktop-Verknüpfung.
+
 ## [0.2.7] - 2026-10-16
 
 - Optionaler täglicher Wetter-Spruch mit automatischer, ungefährer Stadtbestimmung über die öffentliche IP.
