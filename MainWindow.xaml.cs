@@ -10,6 +10,7 @@ public partial class MainWindow : Window {
  readonly DispatcherTimer movementTimer=new(){Interval=TimeSpan.FromMilliseconds(33)};
  readonly Random random=new();
  readonly UpdateService updates=new();
+ readonly WeatherService weather=new();
  SettingsWindow? settingsWindow;
  string? activeProcess,pendingProcess; int pendingProcessSeconds=0; DateTime lastAppComment=DateTime.MinValue;
  double velocity=1.25, phase=0; int motionTicks=0, idleTicks=40; bool dragging=false; readonly PetSettings settings=PetSettings.Load();
@@ -28,12 +29,20 @@ public partial class MainWindow : Window {
  var y=(int)(Math.Sin(seconds*.12)*3);Body.RenderTransform=new TranslateTransform(0,y);LeftEye.Height=RightEye.Height=settings.MovementMode=="sleep"||seconds%83==0?3:17;
  if(settings.MovementMode=="sleep"){Bubble.Visibility=Visibility.Collapsed;bubbleTime=0;return;}
  bool quiet=(settings.QuietWhenObs&&SystemMonitor.ObsRunning)||(settings.QuietWhenFullscreen&&SystemMonitor.ForegroundFullscreen());if(quiet){Bubble.Visibility=Visibility.Collapsed;bubbleTime=0;return;}
+ if(seconds>=120&&settings.EnableWeatherComments&&settings.LastWeatherAttemptDate?.Date!=DateTime.Today) _=AnnounceDailyWeatherAsync();
  ObserveForegroundProgram();
  bool f=SystemMonitor.FalloutRunning,w=SystemMonitor.WowRunning;
  if(f&&!lastFallout)Say("Fallout 76 gestartet. Das Ödland hat wieder Personalmangel.");
  else if(w&&!lastWow)Say("WoW gestartet. Viel Spaß beim virtuellen Überstundenmachen.");
  else if(settings.EnableSpeech&&seconds%Math.Max(15,settings.IntervalSeconds)==0){var phrase=phrases[random.Next(phrases.Length)];if(settings.EnableSensors&&SystemMonitor.RamPercent() is int ram&&ram>=85)phrase=$"RAM bei {ram} %. Du sammelst Programme wie Kronkorken!";Say(phrase);}
  lastFallout=f;lastWow=w;
+ }
+ async Task AnnounceDailyWeatherAsync(){
+  if(!settings.EnableWeatherComments||settings.LastWeatherAttemptDate?.Date==DateTime.Today)return;
+  settings.LastWeatherAttemptDate=DateTime.Today;
+  try{settings.Save();}catch{return;}
+  var comment=await weather.GetDailyCommentAsync();
+  if(settings.EnableWeatherComments&&comment is not null)Say(comment);
  }
  void ObserveForegroundProgram(){
   var process=SystemMonitor.ForegroundProcessName();
