@@ -6,6 +6,12 @@ if errorlevel 1 (
  pause
  exit /b 1
 )
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0New-Icon.ps1"
+if errorlevel 1 (
+ echo Symbol konnte nicht erstellt werden.
+ pause
+ exit /b 1
+)
 dotnet publish Noxy.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableWindowsTargeting=true -o "%~dp0publish"
 if errorlevel 1 (
  echo Build fehlgeschlagen.
