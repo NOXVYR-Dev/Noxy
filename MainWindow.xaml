@@ -1,7 +1,7 @@
 <Window x:Class="Noxy.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Noxy" Width="270" Height="300" AllowsTransparency="True" WindowStyle="None" Background="Transparent" ShowInTaskbar="False" Topmost="True" ResizeMode="NoResize" MouseLeftButtonDown="DragWindow" Loaded="OnLoaded" Closing="OnClosing">
 <Window.ContextMenu><ContextMenu><MenuItem Header="Spruch!" Click="SayNow"/><MenuItem Header="KI-Chat" Click="OpenChat"/><MenuItem Header="Einstellungen" Click="OpenSettings"/><Separator/><MenuItem Header="Beenden" Click="ExitApp"/></ContextMenu></Window.ContextMenu>
 <Grid><Grid.RowDefinitions><RowDefinition Height="105"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-<Border x:Name="Bubble" Grid.Row="0" Background="#EF17121B" BorderBrush="#FFB83243" BorderThickness="1.5" CornerRadius="15" Padding="11" Margin="4,2,4,4" Visibility="Collapsed"><TextBlock x:Name="BubbleText" Foreground="#FFF6E9E9" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center"/></Border>
+<Border x:Name="Bubble" Grid.Row="0" Background="#EF17121B" BorderBrush="#FFB83243" BorderThickness="1.5" CornerRadius="15" Padding="11" Margin="4,2,4,4" Visibility="Collapsed"><TextBlock x:Name="BubbleText" Foreground="#FFF6E9E9" FontSize="14" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center"/></Border>
 <Canvas Grid.Row="1" Width="180" Height="182" HorizontalAlignment="Center" VerticalAlignment="Center">
 <Ellipse Canvas.Left="26" Canvas.Top="160" Width="132" Height="17" Fill="#77000000"/>
 <Path x:Name="LeftEar" Data="M 49,61 L 35,4 Q 64,17 74,43 Z" Fill="#FF1C1724" Stroke="#FFDC364C" StrokeThickness="3"/>
