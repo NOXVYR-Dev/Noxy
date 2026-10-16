@@ -18,6 +18,12 @@ if errorlevel 1 (
  pause
  exit /b 1
 )
+copy /y "%~dp0noxy.ico" "%~dp0publish\noxy.ico" >nul
+if errorlevel 1 (
+ echo Symbol konnte nicht in den Ausgabeordner kopiert werden.
+ pause
+ exit /b 1
+)
 echo Fertig: %~dp0publish\Noxy.exe
 pause
 
