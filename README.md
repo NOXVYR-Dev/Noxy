@@ -6,7 +6,7 @@ Noxy ist ein eigenständiges Desktop-Pet für Windows 10/11. Auf dem Ziel-PC mus
 
 Lade `Noxy-Setup-x64.exe` aus dem neuesten GitHub-Release herunter und starte die Datei. Noxy wird nur für dein Windows-Benutzerkonto unter `%LOCALAPPDATA%\Programs\Noxy` installiert; Admin-Rechte und eine separate .NET-Installation sind nicht nötig. Im Setup kannst du den Autostart bei der Windows-Anmeldung und eine Desktop-Verknüpfung auswählen.
 
-Über einen Rechtsklick auf Noxy öffnest du **Einstellungen**. Dort kannst du **Beim Windows-Anmelden automatisch starten** jederzeit ein- oder ausschalten. Noxy prüft alle fünf Minuten auf Updates. Wenn eine neue Version bereitsteht, klicke auf **Jetzt aktualisieren**. Noxy lädt das Paket herunter, prüft die SHA-256-Prüfsumme, installiert das Update und startet sich neu. Das ZIP für die portable Nutzung bleibt ebenfalls verfügbar.
+Über einen Rechtsklick auf Noxy öffnest du **Einstellungen**. Dort kannst du **Beim Windows-Anmelden automatisch starten** jederzeit ein- oder ausschalten. Noxy prüft alle fünf Minuten auf Updates und zeigt ein verfügbares Update in seiner Sprechblase sowie mit einem grünen Update-Knopf an. Unter **Änderungen der neuesten Version** stehen die Versionshinweise. Klicke auf **Jetzt aktualisieren**: Noxy lädt das Paket herunter, prüft die SHA-256-Prüfsumme, installiert das Update und startet sich neu. Das ZIP für die portable Nutzung bleibt ebenfalls verfügbar.
 
 ## Eine neue Version veröffentlichen
 
