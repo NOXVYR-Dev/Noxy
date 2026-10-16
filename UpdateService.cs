@@ -21,6 +21,7 @@ public sealed class UpdateService
 
     public event Action? Changed;
     public string Status { get; private set; } = "Suche nach Updates …";
+    public string ChangeLog { get; private set; } = "Es wurden keine Versionshinweise veröffentlicht.";
     public bool UpdateAvailable { get; private set; }
     public bool IsBusy { get; private set; }
     public string CurrentVersion => GetCurrentVersion();
@@ -53,6 +54,10 @@ public sealed class UpdateService
             var tag = root.GetProperty("tag_name").GetString()?.TrimStart('v', 'V');
             if (!Version.TryParse(tag, out var latest))
                 throw new InvalidDataException("Das Release hat keine gültige Versionsnummer.");
+
+            ChangeLog = root.TryGetProperty("body", out var body) && !string.IsNullOrWhiteSpace(body.GetString())
+                ? body.GetString()!.Trim()
+                : "Es wurden keine Versionshinweise veröffentlicht.";
 
             packageUrl = null;
             checksumUrl = null;
@@ -119,19 +124,36 @@ public sealed class UpdateService
             var newApp = Path.Combine(stage, "Noxy.exe");
             if (!File.Exists(newApp)) throw new InvalidDataException("Im Update-Paket fehlt Noxy.exe.");
 
-            var scriptPath = Path.Combine(stage, "apply-update.cmd");
-            await File.WriteAllTextAsync(scriptPath, BuildUpdateScript(appPath, newApp, stage, Environment.ProcessId));
-            var start = new ProcessStartInfo("cmd.exe")
+            var scriptPath = Path.Combine(Path.GetTempPath(), $"Noxy-apply-update-{Guid.NewGuid():N}.ps1");
+            var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Noxy", "update.log");
+            Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+            await File.WriteAllTextAsync(scriptPath, BuildUpdateScript());
+            var start = new ProcessStartInfo("powershell.exe")
             {
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
             };
-            start.ArgumentList.Add("/c");
-            start.ArgumentList.Add($"\"{scriptPath}\"");
+            start.ArgumentList.Add("-NoLogo");
+            start.ArgumentList.Add("-NoProfile");
+            start.ArgumentList.Add("-NonInteractive");
+            start.ArgumentList.Add("-ExecutionPolicy");
+            start.ArgumentList.Add("Bypass");
+            start.ArgumentList.Add("-File");
+            start.ArgumentList.Add(scriptPath);
+            start.ArgumentList.Add("-AppPath");
+            start.ArgumentList.Add(appPath);
+            start.ArgumentList.Add("-NewAppPath");
+            start.ArgumentList.Add(newApp);
+            start.ArgumentList.Add("-StagePath");
+            start.ArgumentList.Add(stage);
+            start.ArgumentList.Add("-ProcessIdToWait");
+            start.ArgumentList.Add(Environment.ProcessId.ToString());
+            start.ArgumentList.Add("-LogPath");
+            start.ArgumentList.Add(logPath);
             if (Process.Start(start) is null)
                 throw new IOException("Der Update-Vorgang konnte nicht gestartet werden.");
-            Status = "Update wird installiert und Noxy neu gestartet …";
+            Status = "Update wird installiert. Noxy startet gleich neu …";
             Changed?.Invoke();
             System.Windows.Application.Current.Shutdown();
         }
@@ -147,40 +169,48 @@ public sealed class UpdateService
         }
     }
 
-    private static string BuildUpdateScript(string appPath, string newAppPath, string stage, int processId)
-    {
-        static string Escape(string value) => value.Replace("%", "%%");
-        return $"""
-@echo off
-setlocal DisableDelayedExpansion
-set "APP={Escape(appPath)}"
-set "NEW={Escape(newAppPath)}"
-set "STAGE={Escape(stage)}"
-set "PID={processId}"
-for /L %%i in (1,1,120) do (
-  tasklist /FI "PID eq %PID%" /NH | findstr /R /C:"[ ]%PID%[ ]" >nul
-  if errorlevel 1 goto replace
-  timeout /t 1 /nobreak >nul
+    private static string BuildUpdateScript() => """
+param(
+    [Parameter(Mandatory=$true)][string]$AppPath,
+    [Parameter(Mandatory=$true)][string]$NewAppPath,
+    [Parameter(Mandatory=$true)][string]$StagePath,
+    [Parameter(Mandatory=$true)][int]$ProcessIdToWait,
+    [Parameter(Mandatory=$true)][string]$LogPath
 )
-:replace
-if not exist "%NEW%" goto failed
-copy /y "%APP%" "%APP%.bak" >nul
-copy /y "%NEW%" "%APP%" >nul
-if errorlevel 1 goto rollback
-start "" "%APP%"
-timeout /t 4 /nobreak >nul
-del "%APP%.bak" >nul 2>nul
-rd /s /q "%STAGE%" >nul 2>nul
-del "%~f0" >nul 2>nul
-exit /b 0
-:rollback
-if exist "%APP%.bak" copy /y "%APP%.bak" "%APP%" >nul
-start "" "%APP%"
-:failed
-timeout /t 3 /nobreak >nul
-del "%~f0" >nul 2>nul
+$ErrorActionPreference = 'Stop'
+function Write-Log([string]$Message) {
+    Add-Content -LiteralPath $LogPath -Value "$(Get-Date -Format o) $Message"
+}
+try {
+    Write-Log 'Update helper started.'
+    $old = Get-Process -Id $ProcessIdToWait -ErrorAction SilentlyContinue
+    if ($old -and -not $old.WaitForExit(120000)) { throw 'Noxy wurde nicht rechtzeitig beendet; die alte Version bleibt erhalten.' }
+    if (-not (Test-Path -LiteralPath $NewAppPath)) { throw 'Die neue Noxy.exe fehlt im Update-Paket.' }
+    $backupPath = "$AppPath.bak"
+    $replacementPath = "$AppPath.new"
+    Copy-Item -LiteralPath $NewAppPath -Destination $replacementPath -Force
+    if (Test-Path -LiteralPath $AppPath) { Copy-Item -LiteralPath $AppPath -Destination $backupPath -Force }
+    Move-Item -LiteralPath $replacementPath -Destination $AppPath -Force
+    Write-Log 'Neue Programmdatei kopiert; Noxy startet neu.'
+    Start-Process -FilePath $AppPath
+    Start-Sleep -Seconds 3
+    Remove-Item -LiteralPath $backupPath -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $StagePath -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Log 'Update abgeschlossen.'
+} catch {
+    Write-Log "Update fehlgeschlagen: $($_.Exception.Message)"
+    try {
+        if (Test-Path -LiteralPath "$AppPath.bak") {
+            Copy-Item -LiteralPath "$AppPath.bak" -Destination $AppPath -Force
+            Start-Process -FilePath $AppPath
+            Write-Log 'Vorherige Version wiederhergestellt und gestartet.'
+        } elseif (-not (Get-Process -Id $ProcessIdToWait -ErrorAction SilentlyContinue) -and (Test-Path -LiteralPath $AppPath)) {
+            Start-Process -FilePath $AppPath
+            Write-Log 'Vorhandene Version nach Updatefehler erneut gestartet.'
+        }
+    } catch { Write-Log "Wiederherstellung fehlgeschlagen: $($_.Exception.Message)" }
+}
 """;
-    }
 
     private static string GetCurrentVersion()
     {
@@ -191,7 +221,7 @@ del "%~f0" >nul 2>nul
     private static HttpClient CreateClient()
     {
         var client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("NoxyDesktopPet", "0.1.3"));
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("NoxyDesktopPet", "0.2.2"));
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         return client;
     }
