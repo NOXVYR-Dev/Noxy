@@ -6,6 +6,7 @@ public class PetSettings {
  public bool QuietWhenObs {get;set;}=true;
  public bool QuietWhenFullscreen {get;set;}=true;
  public bool EnableSpeech {get;set;}=true;
+ public bool EnableAppComments {get;set;}=true;
  public bool EnableWalking {get;set;}=true;
  public string MovementMode {get;set;}="walk";
  public bool EnableSensors {get;set;}=true;
