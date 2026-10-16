@@ -1,5 +1,11 @@
 # Änderungsprotokoll
 
+## [0.2.7] - 2026-10-16
+
+- Optionaler täglicher Wetter-Spruch mit automatischer, ungefährer Stadtbestimmung über die öffentliche IP.
+- Die Funktion ist standardmäßig ausgeschaltet und kann in den Einstellungen aktiviert werden. Wetterabfrage höchstens einmal täglich.
+- Transparente Hinweise zu IP-/Standortdaten und Quellen stehen direkt bei der Option; Open-Meteo wird genannt.
+
 ## [0.2.6] - 2026-10-16
 
 - Auswahl im Bewegungsmenü und deaktivierte Update-Schaltfläche haben jetzt gut lesbaren Kontrast.
