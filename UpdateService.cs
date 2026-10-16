@@ -124,6 +124,7 @@ public sealed class UpdateService
             ZipFile.ExtractToDirectory(zipPath, stage);
             var newApp = Path.Combine(stage, "Noxy.exe");
             if (!File.Exists(newApp)) throw new InvalidDataException("Im Update-Paket fehlt Noxy.exe.");
+            var newIcon = Path.Combine(stage, "noxy.ico");
 
             var scriptPath = Path.Combine(Path.GetTempPath(), $"Noxy-apply-update-{Guid.NewGuid():N}.ps1");
             var readyPath = Path.Combine(stage, "updater.ready");
@@ -147,6 +148,8 @@ public sealed class UpdateService
             start.ArgumentList.Add(appPath);
             start.ArgumentList.Add("-NewAppPath");
             start.ArgumentList.Add(newApp);
+            start.ArgumentList.Add("-NewIconPath");
+            start.ArgumentList.Add(newIcon);
             start.ArgumentList.Add("-StagePath");
             start.ArgumentList.Add(stage);
             start.ArgumentList.Add("-ReadyPath");
@@ -188,6 +191,7 @@ public sealed class UpdateService
 param(
     [Parameter(Mandatory=$true)][string]$AppPath,
     [Parameter(Mandatory=$true)][string]$NewAppPath,
+    [Parameter(Mandatory=$false)][string]$NewIconPath,
     [Parameter(Mandatory=$true)][string]$StagePath,
     [Parameter(Mandatory=$true)][string]$ReadyPath,
     [Parameter(Mandatory=$true)][int]$ProcessIdToWait,
@@ -208,9 +212,21 @@ try {
     Copy-Item -LiteralPath $NewAppPath -Destination $replacementPath -Force
     if (Test-Path -LiteralPath $AppPath) { Copy-Item -LiteralPath $AppPath -Destination $backupPath -Force }
     Move-Item -LiteralPath $replacementPath -Destination $AppPath -Force
+    if ($NewIconPath -and (Test-Path -LiteralPath $NewIconPath)) {
+        $iconPath = Join-Path (Split-Path -Parent $AppPath) 'noxy.ico'
+        Copy-Item -LiteralPath $NewIconPath -Destination $iconPath -Force
+        $shell = New-Object -ComObject WScript.Shell
+        foreach ($shortcutPath in @((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Noxy.lnk'), (Join-Path ([Environment]::GetFolderPath('Programs')) 'Noxy\Noxy.lnk'))) {
+            if (Test-Path -LiteralPath $shortcutPath) { $shortcut = $shell.CreateShortcut($shortcutPath); $shortcut.IconLocation = "$iconPath,0"; $shortcut.Save() }
+        }
+    }
     Write-Log 'Neue Programmdatei kopiert; Noxy startet neu.'
-    Start-Process -FilePath $AppPath
+    Get-Process -Name 'Noxy' -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $ProcessIdToWait } | ForEach-Object { try { $_.CloseMainWindow() | Out-Null } catch {} }
+    $deadline = (Get-Date).AddSeconds(30)
+    while ((Get-Process -Name 'Noxy' -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $ProcessIdToWait }) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250 }
+    Get-Process -Name 'Noxy' -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $ProcessIdToWait } | Stop-Process -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 3
+    Start-Process -FilePath $AppPath
     Remove-Item -LiteralPath $backupPath -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $StagePath -Recurse -Force -ErrorAction SilentlyContinue
     Write-Log 'Update abgeschlossen.'
