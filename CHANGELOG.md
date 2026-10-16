@@ -1,5 +1,10 @@
 # Änderungsprotokoll
 
+## [0.2.6] - 2026-10-16
+
+- Auswahl im Bewegungsmenü und deaktivierte Update-Schaltfläche haben jetzt gut lesbaren Kontrast.
+- 30 zusätzliche freche Sprüche für mehr Abwechslung.
+
 ## [0.2.5] - 2026-10-16
 
 - Noxy erkennt auf Wunsch das aktive Vordergrund-Programm und kommentiert Programmwechsel.
