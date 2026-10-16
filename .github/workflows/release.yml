@@ -31,6 +31,24 @@ jobs:
           "value=$version" >> $env:GITHUB_OUTPUT
           "tag=v$version" >> $env:GITHUB_OUTPUT
 
+      - name: Prepare release notes
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.value }}"
+          $lines = Get-Content CHANGELOG.md
+          $start = -1
+          for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match "^## \[$([regex]::Escape($version))\](?:\s|$)") { $start = $i; break }
+          }
+          if ($start -lt 0) { throw "CHANGELOG.md has no section for $version" }
+          $end = $lines.Count
+          for ($i = $start + 1; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match '^## \[') { $end = $i; break }
+          }
+          $notes = $lines[$start..($end - 1)] -join "`n"
+          if ([string]::IsNullOrWhiteSpace($notes)) { throw "Release notes for $version are empty" }
+          Set-Content -Path release-notes.md -Value $notes -Encoding utf8
+
       - name: Publish self-contained Windows app
         run: dotnet publish Noxy.csproj -c Release -r win-x64 --self-contained true -p:Version=${{ steps.version.outputs.value }} -p:AssemblyVersion=${{ steps.version.outputs.value }}.0 -p:FileVersion=${{ steps.version.outputs.value }}.0 -p:InformationalVersion=${{ steps.version.outputs.value }} -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableWindowsTargeting=true -o publish
 
@@ -66,5 +84,5 @@ jobs:
           $tag = "${{ steps.version.outputs.tag }}"
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) { throw "Release $tag already exists. Increase version.json before releasing." }
-          gh release create $tag Noxy-win-x64.zip Noxy-win-x64.zip.sha256 installer-output/Noxy-Setup-x64.exe installer-output/Noxy-Setup-x64.exe.sha256 --title "Noxy ${{ steps.version.outputs.value }}" --notes "Windows x64 installer and portable package. Noxy checks GitHub Releases for updates every five minutes."
+          gh release create $tag Noxy-win-x64.zip Noxy-win-x64.zip.sha256 installer-output/Noxy-Setup-x64.exe installer-output/Noxy-Setup-x64.exe.sha256 --title "Noxy ${{ steps.version.outputs.value }}" --notes-file release-notes.md
 
