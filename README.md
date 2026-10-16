@@ -22,6 +22,7 @@ Mit installiertem .NET 8 SDK `BUILD-WINDOWS.bat` starten. Die App erscheint unte
 
 In den Einstellungen kannst du außerdem Kommentare bei Programmwechsel aktivieren. Noxy erkennt dafür ausschließlich den Namen des aktiven Programms (nach 3 Sekunden) und kommentiert höchstens alle 3 Minuten. Fenstertitel und Inhalte werden nicht gelesen; es werden keine Programmnamen übertragen.
 
+
 Noxy kann beim Herumlaufen über gemeinsame Kanten direkt angrenzender Monitore wechseln. Am äußeren Rand des Monitorverbunds dreht es um. Die Monitore müssen in den Windows-Anzeigeeinstellungen passend angeordnet sein.
 
 Einstellungen liegen lokal unter `%LOCALAPPDATA%\Noxy`. Vorhandene Einstellungen der Noxvyr-Alpha werden beim ersten Start übernommen.
