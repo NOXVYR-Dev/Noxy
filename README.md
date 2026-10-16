@@ -1,8 +1,8 @@
 # Noxy – Desktop-Pet
 
-## Windows-Version 0.3.3: Präzise Bildschirmecken
+## Windows-Version 0.3.4: PC-Statusmeldungen
 
-Version 0.3.3 erscheint als reguläres GitHub-Release. Bereits installierte Noxys erkennen das Update und zeigen einen Hinweis an. Klicke in den Einstellungen auf **Jetzt aktualisieren**. Alternativ stehen dort die direkte Setup-Datei und das portable ZIP unter **Releases** bereit.
+Version 0.3.4 erscheint als reguläres GitHub-Release. Bereits installierte Noxys erkennen das Update und zeigen einen Hinweis an. Klicke in den Einstellungen auf **Jetzt aktualisieren**. Alternativ stehen dort die direkte Setup-Datei und das portable ZIP unter **Releases** bereit.
 
 - **Herumlaufen / Zappelig:** selbstständige Spaziergänge mit Pausen, sichtbaren Schritten, Wippen, Blickrichtung und Blinzeln.
 - **Flummi-Wurf:** Noxy mit der linken Maustaste schnell ziehen und während der Bewegung loslassen. Er übernimmt Richtung und Tempo, fliegt mit Schwerkraft weiter und prallt an allen vier Rändern des aktuellen Monitor-Arbeitsbereichs zurück. Rückpraller verlieren Energie; spätestens nach fünf Sekunden endet der Flug. Danach gilt wieder der gewählte Bewegungsmodus.
@@ -11,11 +11,12 @@ Version 0.3.3 erscheint als reguläres GitHub-Release. Bereits installierte Noxy
 - Ein geöffnetes Kontextmenü oder Einstellungsfenster pausiert die Bewegung. Doppelklick öffnet weiterhin die Einstellungen.
 - Der Flug wird nun mit etwa 60 Bildern pro Sekunde und einer geringeren Höchstgeschwindigkeit berechnet, damit Würfe und Rückpraller weicher wirken.
 - Die Arbeitsfläche des Monitors wird DPI-bewusst aus den echten Bildschirmecken umgerechnet. Beim Ziehen und Loslassen in einer Ecke bleibt Noxy dadurch an der präzisen Position.
+- Wenn **PC-Statusmeldungen aktiv** ist, nennt Noxy etwa alle vier bis sechs Minuten CPU-, GPU- und RAM-Auslastung. Die Messwerte werden lokal gelesen. GPU-Werte verwenden den stärksten GPU-Engine, den Windows-Treiber meldet; auf manchen Geräten ist diese Messung nicht verfügbar.
 - Korrigierte Bildschirmgrenzen: Die Fensterbreite wird nicht mehr doppelt abgezogen. Wie in Version 0.3.0 bleibt Noxy beim Laufen auf dem aktuellen Monitor; manuelles Ziehen auf andere Monitore bleibt möglich.
 
 Diese Alpha ist eine separate Fortsetzung der Version 0.3.0. Die portable Alpha verwendet dieselben lokalen Einstellungen und dasselbe Instanzlimit wie eine bereits installierte App. Vor dem Test eine bereits laufende Noxy-Version über deren Menü beenden.
 
-Automatische Prüfungen: `dotnet run --project ../Noxy.Tests/Noxy.Tests.csproj -c Release -- ../../outputs`. Sie prüfen Bewegung, Wurfgeschwindigkeit, Rückpraller, Ruhemodi, 250 zufällige Flugbahnen und das echte WPF-Fenster einschließlich der Verbindung zwischen Positionsereignissen und Wurfstart. KI-Chat und Einstellungen werden geöffnet; die RAM-Abfrage wird geprüft. Bezahlte Chat-Anfragen, Wetter, Updates, Installation und Autostart werden nicht Ende zu Ende getestet. Ein manueller Mauswurf sowie gemischte DPI-Skalierungen auf mehreren physischen Monitoren bleiben zur Abnahme am Ziel-PC.
+Automatische Prüfungen: `dotnet run --project ../Noxy.Tests/Noxy.Tests.csproj -c Release -- ../../outputs`. Sie prüfen Bewegung, Wurfgeschwindigkeit, Rückpraller, Ruhemodi, 250 zufällige Flugbahnen und das echte WPF-Fenster einschließlich der Verbindung zwischen Positionsereignissen und Wurfstart. KI-Chat und Einstellungen werden geöffnet; CPU-, GPU- und RAM-Abfragen sowie die PC-Statusmeldung werden geprüft. Bezahlte Chat-Anfragen, Wetter, Updates, Installation und Autostart werden nicht Ende zu Ende getestet. Ein manueller Mauswurf sowie gemischte DPI-Skalierungen auf mehreren physischen Monitoren bleiben zur Abnahme am Ziel-PC.
 
 Einstellungen öffnen sich nun auch bei gesperrtem Windows-Autostartzugriff; in diesem Fall ist nur die Autostart-Option deaktiviert. Unveränderte Autostart-Einstellungen werden beim Speichern nicht erneut in die Registry geschrieben.
 

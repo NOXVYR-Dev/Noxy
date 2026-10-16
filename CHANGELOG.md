@@ -1,5 +1,10 @@
 # Änderungsprotokoll
 
+## [0.3.4] - 2026-10-16
+
+- Noxy teilt etwa alle vier bis sechs Minuten CPU-, GPU- und RAM-Auslastung mit, sofern PC-Statusmeldungen aktiviert sind.
+- CPU und GPU werden mit Windows-Leistungsdaten ermittelt. Nicht verfügbare GPU-Werte werden als solche angezeigt; Sensorwerte verlassen den PC nicht.
+
 ## [0.3.3] - 2026-10-16
 
 - Bildschirmgrenzen werden über WPFs DPI-Umrechnung aus den tatsächlichen Arbeitsbereich-Ecken des Monitors berechnet. Noxy springt beim Loslassen in einer Bildschirmecke nicht mehr durch vermischte Pixel- und DIP-Maße weg.

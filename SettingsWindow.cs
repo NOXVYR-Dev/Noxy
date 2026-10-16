@@ -87,7 +87,8 @@ public class SettingsWindow : Window
         var speech = AddCheck(panel, "Freche Sprüche aktiv", settings.EnableSpeech);
         var obs = AddCheck(panel, "Ruhemodus bei OBS", settings.QuietWhenObs);
         var full = AddCheck(panel, "Ruhemodus bei Vollbild", settings.QuietWhenFullscreen);
-        var sensors = AddCheck(panel, "RAM-Warnungen aktiv", settings.EnableSensors);
+        var sensors = AddCheck(panel, "PC-Statusmeldungen aktiv", settings.EnableSensors);
+        panel.Children.Add(new TextBlock { Text = "Etwa alle fünf Minuten: CPU-, GPU- und RAM-Auslastung. Die Messwerte bleiben auf diesem PC; GPU-Werte hängen vom installierten Windows-Treiber ab.", TextWrapping = TextWrapping.Wrap, Opacity = 0.8, Margin = new Thickness(0, -4, 0, 10) });
         var appComments = AddCheck(panel, "Kommentare bei Programmwechsel", settings.EnableAppComments);
         panel.Children.Add(new TextBlock { Text = "Erkennt nur den Namen des aktiven Programms. Keine Fenstertitel oder Inhalte. Höchstens ein Kommentar alle 3 Minuten.", TextWrapping = TextWrapping.Wrap, Opacity = 0.8, Margin = new Thickness(0, -4, 0, 10) });
         var weatherComments = AddCheck(panel, "Täglicher Wetter-Spruch (ungefähre Stadt per IP)", settings.EnableWeatherComments);
