@@ -3,18 +3,25 @@ $size = 256
 $bitmap = New-Object System.Drawing.Bitmap($size, $size, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
 $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
 $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-$graphics.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
 $graphics.Clear([System.Drawing.Color]::Transparent)
 $background = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 23, 18, 27))
-$accent = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(255, 185, 75, 255), 12)
-$white = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
-$graphics.FillEllipse($background, 12, 12, 232, 232)
-$graphics.DrawEllipse($accent, 12, 12, 232, 232)
-$font = New-Object System.Drawing.Font("Segoe UI", 145, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
-$format = New-Object System.Drawing.StringFormat
-$format.Alignment = [System.Drawing.StringAlignment]::Center
-$format.LineAlignment = [System.Drawing.StringAlignment]::Center
-$graphics.DrawString("N", $font, $white, (New-Object System.Drawing.RectangleF(18, 18, 220, 220)), $format)
+$bodyBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 36, 33, 45))
+$accent = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(255, 255, 66, 92), 9)
+$white = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 246, 233, 233))
+$graphics.FillEllipse($background, 8, 8, 240, 240)
+$graphics.DrawEllipse((New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(255, 184, 50, 67), 7)), 8, 8, 240, 240)
+$graphics.FillPolygon($bodyBrush, [System.Drawing.Point[]]@([System.Drawing.Point]::new(72,105), [System.Drawing.Point]::new(48,38), [System.Drawing.Point]::new(106,64)))
+$graphics.DrawPolygon($accent, [System.Drawing.Point[]]@([System.Drawing.Point]::new(72,105), [System.Drawing.Point]::new(48,38), [System.Drawing.Point]::new(106,64)))
+$graphics.FillPolygon($bodyBrush, [System.Drawing.Point[]]@([System.Drawing.Point]::new(184,105), [System.Drawing.Point]::new(208,38), [System.Drawing.Point]::new(150,64)))
+$graphics.DrawPolygon($accent, [System.Drawing.Point[]]@([System.Drawing.Point]::new(184,105), [System.Drawing.Point]::new(208,38), [System.Drawing.Point]::new(150,64)))
+$graphics.FillEllipse($bodyBrush, 45, 62, 166, 157)
+$graphics.DrawEllipse($accent, 45, 62, 166, 157)
+$graphics.FillEllipse($white, 77, 119, 34, 24)
+$graphics.FillEllipse($white, 145, 119, 34, 24)
+$graphics.FillEllipse($accent.Brush, 87, 125, 15, 14)
+$graphics.FillEllipse($accent.Brush, 155, 125, 15, 14)
+$graphics.FillEllipse($bodyBrush, 57, 202, 46, 22)
+$graphics.FillEllipse($bodyBrush, 153, 202, 46, 22)
 $pngStream = New-Object System.IO.MemoryStream
 $bitmap.Save($pngStream, [System.Drawing.Imaging.ImageFormat]::Png)
 $png = $pngStream.ToArray()
@@ -25,5 +32,5 @@ $writer.Write([byte]0); $writer.Write([byte]0); $writer.Write([byte]0); $writer.
 $writer.Write([UInt16]1); $writer.Write([UInt16]32); $writer.Write([UInt32]$png.Length); $writer.Write([UInt32]22)
 $writer.Write($png)
 [System.IO.File]::WriteAllBytes((Join-Path $PSScriptRoot "noxy.ico"), $iconStream.ToArray())
-$writer.Dispose(); $iconStream.Dispose(); $pngStream.Dispose(); $font.Dispose(); $white.Dispose(); $accent.Dispose(); $background.Dispose(); $graphics.Dispose(); $bitmap.Dispose()
+$writer.Dispose(); $iconStream.Dispose(); $pngStream.Dispose(); $white.Dispose(); $accent.Dispose(); $bodyBrush.Dispose(); $background.Dispose(); $graphics.Dispose(); $bitmap.Dispose()
 
