@@ -1,13 +1,12 @@
 # Noxy – Desktop-Pet
 
-## Windows-Version 0.3.9: Federnde Ohren-Animation
+## Windows-Version 0.3.10: Bisherige Ohren-Darstellung
 
-Version 0.3.9 erscheint als reguläres GitHub-Release. Bereits installierte Noxys erkennen das Update und zeigen einen Hinweis an. Klicke in den Einstellungen auf **Jetzt aktualisieren**. Alternativ stehen dort die direkte Setup-Datei und das portable ZIP unter **Releases** bereit.
+Version 0.3.10 erscheint als reguläres GitHub-Release. Bereits installierte Noxys erkennen das Update und zeigen einen Hinweis an. Klicke in den Einstellungen auf **Jetzt aktualisieren**. Alternativ stehen dort die direkte Setup-Datei und das portable ZIP unter **Releases** bereit.
 
 - **Schütteln:** Noxy wird beim schnellen Hin-und-her-Bewegen während des Festhaltens für kurze Zeit wütend, zeigt eine veränderte Mimik und wählt aus vielen kurzen, geschlechtsneutralen Sprüchen. Ein Spruch wiederholt sich nicht direkt. Kleine Mausbewegungen lösen das nicht aus; erkannte Schüttler verhindern einen versehentlichen Wurf beim Loslassen.
 
 - **Herumlaufen / Zappelig:** selbstständige Spaziergänge mit Pausen, sichtbaren Schritten, Wippen, Blickrichtung und Blinzeln.
-- Beim Herumlaufen wippen Noxys Ohren deutlich und zeitversetzt mit leichter Dehnung im Takt seiner Schritte.
 - **Flummi-Wurf:** Noxy mit der linken Maustaste schnell ziehen und während der Bewegung loslassen. Er übernimmt Richtung und Tempo, fliegt mit Schwerkraft weiter und prallt an allen vier Rändern des aktuellen Monitor-Arbeitsbereichs zurück. Rückpraller verlieren Energie; spätestens nach fünf Sekunden endet der Flug. Danach gilt wieder der gewählte Bewegungsmodus.
 - Langsam ziehen oder vor dem Loslassen kurz stillhalten platziert Noxy ohne Wurf. Erneutes Festhalten stoppt einen laufenden Flug.
 - **Statisch:** bleibt stehen und atmet/blinzelt; absichtliches Werfen ist möglich. **Schlafmodus:** geschlossene Augen, Zs, keine Spaziergänge oder Würfe. OBS-/Vollbild-Ruhemodus stoppt Bewegung und Sprechblasen wie bisher.

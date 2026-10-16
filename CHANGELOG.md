@@ -1,5 +1,9 @@
 # Änderungsprotokoll
 
+## [0.3.10] - 2026-10-16
+
+- Die Ohren-Animation wurde wieder entfernt; Noxy behält beim Laufen sein bisheriges Aussehen.
+
 ## [0.3.9] - 2026-10-16
 
 - Überarbeitete Ohren-Animation: Beim Laufen wippen die Ohren stärker, zeitversetzt und mit leichtem Dehnen, damit sie federnd und verspielt wirken.
