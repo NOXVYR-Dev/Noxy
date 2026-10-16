@@ -4,6 +4,7 @@ using System.Windows.Media;
 using WpfButton = System.Windows.Controls.Button;
 using WpfCheckBox = System.Windows.Controls.CheckBox;
 using WpfTextBox = System.Windows.Controls.TextBox;
+using WpfComboBox = System.Windows.Controls.ComboBox;
 using WpfOrientation = System.Windows.Controls.Orientation;
 
 namespace Noxy;
@@ -19,21 +20,29 @@ public class SettingsWindow : Window
     {
         updates = updateService;
         Title = "Noxy | Einstellungen";
-        Width = 410;
-        Height = 570;
+        Width = 440;
+        Height = 680;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         Background = System.Windows.Media.Brushes.Black;
         Foreground = System.Windows.Media.Brushes.White;
 
         var panel = new StackPanel { Margin = new Thickness(20) };
-        Content = panel;
+        Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
         panel.Children.Add(new TextBlock { Text = $"Noxy {updates.CurrentVersion}", FontSize = 19, Margin = new Thickness(0, 0, 0, 15) });
 
-        var walking = AddCheck(panel, "Automatisch herumlaufen", settings.EnableWalking);
+        panel.Children.Add(new TextBlock { Text = "Verhalten", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 5) });
+        var movement = new WpfComboBox { Height = 32, Margin = new Thickness(0, 0, 0, 12) };
+        movement.Items.Add("Herumlaufen");
+        movement.Items.Add("Zappelig");
+        movement.Items.Add("Statisch");
+        movement.Items.Add("Schlafmodus");
+        movement.SelectedIndex = settings.MovementMode switch { "zippy" => 1, "static" => 2, "sleep" => 3, _ => 0 };
+        panel.Children.Add(movement);
         var speech = AddCheck(panel, "Freche Sprüche aktiv", settings.EnableSpeech);
         var obs = AddCheck(panel, "Ruhemodus bei OBS", settings.QuietWhenObs);
         var full = AddCheck(panel, "Ruhemodus bei Vollbild", settings.QuietWhenFullscreen);
         var sensors = AddCheck(panel, "RAM-Warnungen aktiv", settings.EnableSensors);
+        var autostart = AddCheck(panel, "Beim Windows-Anmelden automatisch starten", WindowsStartup.IsEnabled());
 
         panel.Children.Add(new TextBlock { Text = "Sprüche alle (Sekunden, mindestens 15):", Margin = new Thickness(0, 6, 0, 0) });
         var interval = new WpfTextBox { Text = settings.IntervalSeconds.ToString(), Margin = new Thickness(0, 5, 0, 12) };
@@ -43,13 +52,23 @@ public class SettingsWindow : Window
         panel.Children.Add(save);
         save.Click += (_, _) =>
         {
-            settings.EnableWalking = walking.IsChecked == true;
+            settings.MovementMode = movement.SelectedIndex switch { 1 => "zippy", 2 => "static", 3 => "sleep", _ => "walk" };
+            settings.EnableWalking = settings.MovementMode is "walk" or "zippy";
             settings.EnableSpeech = speech.IsChecked == true;
             settings.QuietWhenObs = obs.IsChecked == true;
             settings.QuietWhenFullscreen = full.IsChecked == true;
             settings.EnableSensors = sensors.IsChecked == true;
             if (int.TryParse(interval.Text, out var seconds)) settings.IntervalSeconds = Math.Clamp(seconds, 15, 3600);
-            settings.Save();
+            try
+            {
+                WindowsStartup.SetEnabled(autostart.IsChecked == true);
+                settings.Save();
+                updateStatus.Text = "Einstellungen gespeichert.";
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(this, $"Die Autostart-Einstellung konnte nicht gespeichert werden.\n\n{ex.Message}", "Noxy", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         };
 
         panel.Children.Add(new Separator { Margin = new Thickness(0, 18, 0, 12) });
