@@ -1,5 +1,10 @@
 # Änderungsprotokoll
 
+## [0.3.0] - 2026-10-16
+
+- Noxy dreht beim selbstständigen Laufen an den Rändern des aktuellen Monitors um und läuft nicht mehr von selbst auf einen anderen Bildschirm.
+- Mit gedrückter linker Maustaste kann Noxy weiterhin auf jeden verbundenen Monitor gezogen werden.
+
 ## [0.2.9] - 2026-10-16
 
 - Die Darstellung des Pets bleibt bei der bisherigen Form; der Schriftzug „Noxy“ auf dem Pet wurde entfernt.
