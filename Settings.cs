@@ -7,6 +7,8 @@ public class PetSettings {
  public bool QuietWhenFullscreen {get;set;}=true;
  public bool EnableSpeech {get;set;}=true;
  public bool EnableAppComments {get;set;}=true;
+ public bool EnableWeatherComments {get;set;}=false;
+ public DateTime? LastWeatherAttemptDate {get;set;}
  public bool EnableWalking {get;set;}=true;
  public string MovementMode {get;set;}="walk";
  public bool EnableSensors {get;set;}=true;
